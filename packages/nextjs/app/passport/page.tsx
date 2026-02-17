@@ -88,6 +88,53 @@ export default function PassportPage() {
   const [selectedCountry, setSelectedCountry] = useState<string>(COUNTRIES[0].value);
   const [parsedResult, setParsedResult] = useState<ParsedProfile | null>(null);
   const [profiles, setProfiles] = useState<SavedProfile[]>([]);
+  const [geminiLoading, setGeminiLoading] = useState(false);
+  const [geminiResult, setGeminiResult] = useState<string | null>(null);
+
+  const handleGeminiDebug = async () => {
+    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    if (!apiKey) {
+      setGeminiResult("Set NEXT_PUBLIC_GEMINI_API_KEY in .env.local");
+      return;
+    }
+    setGeminiLoading(true);
+    setGeminiResult(null);
+    try {
+      const res = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": apiKey,
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [{ text: "Explain how AI works in a few words" }],
+              },
+            ],
+          }),
+        },
+      );
+      const raw = await res.text();
+      if (!res.ok) {
+        setGeminiResult(`Error ${res.status}\n${raw}`);
+        return;
+      }
+      const data = JSON.parse(raw) as {
+        candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+      };
+      const text =
+        data.candidates?.[0]?.content?.parts?.[0]?.text ??
+        raw;
+      setGeminiResult(text);
+    } catch (e) {
+      setGeminiResult(`Request failed: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setGeminiLoading(false);
+    }
+  };
 
   const handleParse = () => {
     setParsedResult(fakeParseReport(reportText, selectedCountry));
@@ -123,6 +170,21 @@ export default function PassportPage() {
         ) : (
           <>
             <h1 className="text-center text-3xl font-bold mb-4">Global Credit Passport</h1>
+            <div className="flex justify-center mb-4">
+              <button
+                type="button"
+                className="btn btn-sm btn-secondary"
+                onClick={handleGeminiDebug}
+                disabled={geminiLoading}
+              >
+                {geminiLoading ? "..." : "Gemini Debug"}
+              </button>
+            </div>
+            {geminiResult != null && (
+              <pre className="mx-auto mb-6 max-w-xl p-4 bg-base-200 rounded-lg text-sm overflow-auto whitespace-pre-wrap">
+                {geminiResult}
+              </pre>
+            )}
             {profiles.length > 0 && (
               <p className="text-center text-xl font-semibold mb-6">
                 Global Credit Score: {computeGlobalScore(profiles)}
