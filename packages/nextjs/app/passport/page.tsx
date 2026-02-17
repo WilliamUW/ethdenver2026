@@ -8,6 +8,7 @@ import { hardhat } from "viem/chains";
 import { useAccount } from "wagmi";
 import { useTargetNetwork } from "~~/hooks/scaffold-eth";
 
+
 const COUNTRIES = [
   { value: "Canada", label: "Canada" },
   { value: "USA", label: "USA" },
@@ -24,6 +25,7 @@ type ParsedProfile = {
   score: string;
   ageMonths: number;
   cards: number;
+  totalAccounts: number;
   utilization: string;
   delinquencies: number;
 };
@@ -49,16 +51,89 @@ const COUNTRY_FLAGS: Record<string, string> = {
   Singapore: "🇸🇬",
 };
 
-function fakeParseReport(_rawText: string, country: string): ParsedProfile {
-  return {
-    country,
-    name: "John Doe",
-    score: "720/900",
-    ageMonths: 24,
-    cards: 3,
-    utilization: "28%",
-    delinquencies: 0,
+const EXTRACTION_PROMPT = `You are a credit report parser. Extract the following fields from the credit report text below and return ONLY a valid JSON object with no other text, no markdown, no code fence. Use exactly these keys:
+- country (string): use the country provided by the user
+- name (string): account holder name if present, else "Unknown"
+- score (string): credit score, format like "720/850" or "680/900" (score/max). If only one number given, use that number and common max for that country (e.g. 850 USA, 900 Canada)
+- ageMonths (number): length of credit history in months, or 0 if unknown
+- cards (number): number of credit cards or revolving accounts
+- totalAccounts (number): total number of credit accounts (cards, loans, etc.)
+- utilization (string): credit utilization as percentage, e.g. "28%"
+- delinquencies (number): number of late payments or delinquencies, 0 if none/none mentioned
+
+If a value cannot be found, use null for that key. Return only the JSON object.`;
+
+async function callGemini(
+  apiKey: string,
+  userPrompt: string,
+  options?: { responseJson?: boolean },
+): Promise<string> {
+  const body: {
+    contents: Array<{ parts: Array<{ text: string }> }>;
+    generationConfig?: { temperature: number; responseMimeType?: string };
+  } = {
+    contents: [{ parts: [{ text: userPrompt }] }],
+    generationConfig: { temperature: options?.responseJson ? 0.1 : 0.7 },
   };
+  if (options?.responseJson) body.generationConfig!.responseMimeType = "application/json";
+
+  const res = await fetch(
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey,
+      },
+      body: JSON.stringify(body),
+    },
+  );
+  const raw = await res.text();
+  if (!res.ok) throw new Error(`Gemini ${res.status}: ${raw}`);
+  const data = JSON.parse(raw) as {
+    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+  };
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? raw;
+  return text;
+}
+
+function extractJsonFromResponse(text: string): string {
+  const trimmed = text.trim();
+  const codeBlock = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (codeBlock) return codeBlock[1].trim();
+  return trimmed;
+}
+
+function parseExtractionPayload(jsonStr: string, country: string): ParsedProfile {
+  const raw = JSON.parse(jsonStr) as Record<string, unknown>;
+  const num = (v: unknown): number => (typeof v === "number" && !Number.isNaN(v) ? v : 0);
+  const str = (v: unknown, fallback: string): string =>
+    typeof v === "string" && v.length > 0 ? v : fallback;
+  const scoreRaw = raw.score;
+  let score = "0/850";
+  if (typeof scoreRaw === "string" && scoreRaw.length > 0) score = scoreRaw;
+  else if (typeof scoreRaw === "number") score = `${scoreRaw}/850`;
+  return {
+    country: str(raw.country, country),
+    name: str(raw.name, "Unknown"),
+    score,
+    ageMonths: num(raw.ageMonths),
+    cards: num(raw.cards),
+    totalAccounts: num(raw.totalAccounts),
+    utilization: str(raw.utilization, "0%"),
+    delinquencies: num(raw.delinquencies),
+  };
+}
+
+async function parseReportWithGemini(
+  apiKey: string,
+  reportText: string,
+  country: string,
+): Promise<ParsedProfile> {
+  const fullPrompt = `${EXTRACTION_PROMPT}\n\nUser's country: ${country}\n\nCredit report:\n${reportText}`;
+  const response = await callGemini(apiKey, fullPrompt, { responseJson: true });
+  const jsonStr = extractJsonFromResponse(response);
+  return parseExtractionPayload(jsonStr, country);
 }
 
 function parsedToSaved(p: ParsedProfile): SavedProfile {
@@ -90,6 +165,11 @@ export default function PassportPage() {
   const [profiles, setProfiles] = useState<SavedProfile[]>([]);
   const [geminiLoading, setGeminiLoading] = useState(false);
   const [geminiResult, setGeminiResult] = useState<string | null>(null);
+  const [geminiDebugPrompt, setGeminiDebugPrompt] = useState(
+    "Explain how AI works in a few words",
+  );
+  const [parseLoading, setParseLoading] = useState(false);
+  const [parseError, setParseError] = useState<string | null>(null);
 
   const handleGeminiDebug = async () => {
     const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
@@ -97,37 +177,11 @@ export default function PassportPage() {
       setGeminiResult("Set NEXT_PUBLIC_GEMINI_API_KEY in .env.local");
       return;
     }
+    const prompt = geminiDebugPrompt.trim() || "Say hello in one sentence.";
     setGeminiLoading(true);
     setGeminiResult(null);
     try {
-      const res = await fetch(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-goog-api-key": apiKey,
-          },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [{ text: "Explain how AI works in a few words" }],
-              },
-            ],
-          }),
-        },
-      );
-      const raw = await res.text();
-      if (!res.ok) {
-        setGeminiResult(`Error ${res.status}\n${raw}`);
-        return;
-      }
-      const data = JSON.parse(raw) as {
-        candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-      };
-      const text =
-        data.candidates?.[0]?.content?.parts?.[0]?.text ??
-        raw;
+      const text = await callGemini(apiKey, prompt);
       setGeminiResult(text);
     } catch (e) {
       setGeminiResult(`Request failed: ${e instanceof Error ? e.message : String(e)}`);
@@ -136,8 +190,30 @@ export default function PassportPage() {
     }
   };
 
-  const handleParse = () => {
-    setParsedResult(fakeParseReport(reportText, selectedCountry));
+  const handleParse = async () => {
+    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    if (!apiKey) {
+      toast.error("Set NEXT_PUBLIC_GEMINI_API_KEY in .env.local to parse reports.");
+      return;
+    }
+    if (!reportText.trim()) {
+      toast.error("Paste your credit report text first.");
+      return;
+    }
+    setParseLoading(true);
+    setParseError(null);
+    setParsedResult(null);
+    try {
+      const parsed = await parseReportWithGemini(apiKey, reportText.trim(), selectedCountry);
+      setParsedResult(parsed);
+      toast.success("Report parsed.");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setParseError(msg);
+      toast.error("Parse failed: " + msg);
+    } finally {
+      setParseLoading(false);
+    }
   };
 
   const handleCancel = () => {
@@ -170,14 +246,24 @@ export default function PassportPage() {
         ) : (
           <>
             <h1 className="text-center text-3xl font-bold mb-4">Global Credit Passport</h1>
-            <div className="flex justify-center mb-4">
+            <div className="flex flex-col gap-2 mb-4 max-w-xl mx-auto">
+              <label className="form-control w-full">
+                <span className="label-text">Gemini debug — custom prompt</span>
+                <input
+                  type="text"
+                  className="input input-bordered w-full"
+                  placeholder="e.g. Explain how AI works in a few words"
+                  value={geminiDebugPrompt}
+                  onChange={e => setGeminiDebugPrompt(e.target.value)}
+                />
+              </label>
               <button
                 type="button"
                 className="btn btn-sm btn-secondary"
                 onClick={handleGeminiDebug}
                 disabled={geminiLoading}
               >
-                {geminiLoading ? "..." : "Gemini Debug"}
+                {geminiLoading ? "..." : "Send to Gemini"}
               </button>
             </div>
             {geminiResult != null && (
@@ -229,11 +315,19 @@ export default function PassportPage() {
                   </select>
                 </label>
                 <div className="flex items-end">
-                  <button type="button" className="btn btn-primary" onClick={handleParse}>
-                    Parse Report
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={handleParse}
+                    disabled={parseLoading}
+                  >
+                    {parseLoading ? "Parsing…" : "Parse Report"}
                   </button>
                 </div>
               </div>
+              {parseError && (
+                <p className="text-error text-sm mt-1">{parseError}</p>
+              )}
 
               {parsedResult && (
                 <>
@@ -249,6 +343,8 @@ export default function PassportPage() {
                     Age: {parsedResult.ageMonths} months
                     {"\n"}
                     Cards: {parsedResult.cards} active
+                    {"\n"}
+                    Total accounts: {parsedResult.totalAccounts}
                     {"\n"}
                     Utilization: {parsedResult.utilization}
                     {"\n"}
