@@ -225,6 +225,7 @@ export default function PassportPage() {
   const [parseLoading, setParseLoading] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
   const [expandedProfileKey, setExpandedProfileKey] = useState<string | null>(null);
+  const [debugOpen, setDebugOpen] = useState(false);
 
   const handleGeminiDebug = async () => {
     const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
@@ -301,54 +302,61 @@ export default function PassportPage() {
   };
 
   return (
-    <div className="flex items-center flex-col grow pt-10">
-      <div className="px-5 w-full max-w-4xl mx-auto">
+    <div className="min-h-screen w-full overflow-x-hidden bg-gradient-to-b from-base-200 via-base-200 to-base-300/80">
+      <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+        {/* Hero */}
+        <header className="text-center mb-10 sm:mb-14">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-base-content">
+            Global Credit Passport
+          </h1>
+          <p className="mt-2 text-base sm:text-lg text-base-content/70 max-w-md mx-auto">
+            One score across borders. Add your credit reports and build a portable, on-chain profile.
+          </p>
+        </header>
+
         {!isConnected ? (
-          <div className="flex flex-col items-center gap-4 py-12">
-            <p className="text-lg font-medium">Connect your wallet to use Global Credit Passport</p>
-            <ConnectButton.Custom>
-              {({ openConnectModal, mounted }) => (
-                <button className="btn btn-primary btn-lg" onClick={openConnectModal} type="button" disabled={!mounted}>
-                  Connect Wallet
-                </button>
-              )}
-            </ConnectButton.Custom>
+          <div className="flex flex-col items-center">
+            <div className="card bg-base-100 rounded-2xl shadow-xl border border-base-300/50 w-full max-w-md overflow-hidden">
+              <div className="card-body p-8 sm:p-10 text-center">
+                <p className="text-base-content/80 text-lg">
+                  Connect your wallet to manage your global credit profile on-chain.
+                </p>
+                <div className="mt-6">
+                  <ConnectButton.Custom>
+                    {({ openConnectModal, mounted }) => (
+                      <button
+                        className="btn btn-primary btn-lg rounded-xl px-8 shadow-lg hover:shadow-xl transition-shadow"
+                        onClick={openConnectModal}
+                        type="button"
+                        disabled={!mounted}
+                      >
+                        Connect Wallet
+                      </button>
+                    )}
+                  </ConnectButton.Custom>
+                </div>
+              </div>
+            </div>
           </div>
         ) : (
-          <>
-            <h1 className="text-center text-3xl font-bold mb-4">Global Credit Passport</h1>
-            <div className="flex flex-col gap-2 mb-4 max-w-xl mx-auto">
-              <label className="form-control w-full">
-                <span className="label-text">Gemini debug — custom prompt</span>
-                <input
-                  type="text"
-                  className="input input-bordered w-full"
-                  placeholder="e.g. Explain how AI works in a few words"
-                  value={geminiDebugPrompt}
-                  onChange={e => setGeminiDebugPrompt(e.target.value)}
-                />
-              </label>
-              <button
-                type="button"
-                className="btn btn-sm btn-secondary"
-                onClick={handleGeminiDebug}
-                disabled={geminiLoading}
-              >
-                {geminiLoading ? "..." : "Send to Gemini"}
-              </button>
-            </div>
-            {geminiResult != null && (
-              <pre className="mx-auto mb-6 max-w-xl p-4 bg-base-200 rounded-lg text-sm overflow-auto whitespace-pre-wrap">
-                {geminiResult}
-              </pre>
-            )}
+          <div className="space-y-8">
+            {/* Global score + wallet */}
             {profiles.length > 0 && (
-              <p className="text-center text-xl font-semibold mb-6">
-                Global Credit Score: {computeGlobalScore(profiles)}
-              </p>
+              <div className="card bg-base-100 rounded-2xl shadow-lg border border-base-300/40 overflow-hidden border-l-4 border-l-primary">
+                <div className="card-body p-6 sm:p-8">
+                  <p className="text-sm font-medium text-base-content/60 uppercase tracking-wider">
+                    Your global score
+                  </p>
+                  <p className="text-4xl sm:text-5xl font-bold text-primary mt-1">
+                    {computeGlobalScore(profiles)}
+                  </p>
+                  <p className="text-sm text-base-content/60 mt-1">Normalized from all linked reports</p>
+                </div>
+              </div>
             )}
-            <div className="flex justify-center items-center flex-col gap-2 mb-8">
-              <p className="font-medium">Connected Address:</p>
+
+            <div className="flex items-center justify-between gap-3 text-sm text-base-content/60">
+              <span>Your wallet</span>
               <Address
                 address={address}
                 chain={targetNetwork}
@@ -358,134 +366,152 @@ export default function PassportPage() {
               />
             </div>
 
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold">Upload credit score from countries</h2>
-              <label className="form-control w-full">
-                <span className="label-text">Paste your credit report</span>
-                <textarea
-                  className="textarea textarea-bordered w-full min-h-32"
-                  placeholder="Paste your credit report here (Canada, US, Mexico, EU, Asia)"
-                  value={reportText}
-                  onChange={e => setReportText(e.target.value)}
-                  rows={6}
-                />
-              </label>
-              <div className="flex flex-wrap items-center gap-4">
-                <label className="form-control w-full max-w-xs">
-                  <span className="label-text">Country</span>
-                  <select
-                    className="select select-bordered w-full"
-                    value={selectedCountry}
-                    onChange={e => setSelectedCountry(e.target.value)}
-                  >
-                    {COUNTRIES.map(c => (
-                      <option key={c.value} value={c.value}>
-                        {c.label}
-                      </option>
-                    ))}
-                  </select>
+            {/* Add credit report */}
+            <section className="card bg-base-100 rounded-2xl shadow-lg border border-base-300/40 overflow-hidden">
+              <div className="card-body p-6 sm:p-8">
+                <h2 className="text-xl font-semibold text-base-content">Add a credit report</h2>
+                <p className="text-sm text-base-content/60 mt-0.5">
+                  Paste your report below and choose the country. We’ll extract the key details.
+                </p>
+                <label className="form-control w-full mt-4">
+                  <span className="label-text font-medium text-base-content/80">Paste your credit report</span>
+                  <textarea
+                    className="textarea textarea-bordered w-full min-h-[140px] rounded-xl mt-1.5 text-base"
+                    placeholder="Paste your credit report here (Canada, US, Mexico, EU, Asia…)"
+                    value={reportText}
+                    onChange={e => setReportText(e.target.value)}
+                    rows={6}
+                  />
                 </label>
-                <div className="flex items-end">
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={handleParse}
-                    disabled={parseLoading}
-                  >
-                    {parseLoading ? "Parsing…" : "Parse Report"}
-                  </button>
+                <div className="flex flex-col sm:flex-row gap-4 mt-4">
+                  <label className="form-control flex-1">
+                    <span className="label-text font-medium text-base-content/80">Country</span>
+                    <select
+                      className="select select-bordered w-full rounded-xl mt-1.5"
+                      value={selectedCountry}
+                      onChange={e => setSelectedCountry(e.target.value)}
+                    >
+                      {COUNTRIES.map(c => (
+                        <option key={c.value} value={c.value}>
+                          {c.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <div className="flex items-end">
+                    <button
+                      type="button"
+                      className="btn btn-primary w-full sm:w-auto rounded-xl px-6 shadow-md"
+                      onClick={handleParse}
+                      disabled={parseLoading}
+                    >
+                      {parseLoading ? "Parsing…" : "Parse report"}
+                    </button>
+                  </div>
                 </div>
+                {parseError && (
+                  <p className="text-error text-sm mt-2 bg-error/10 rounded-lg px-3 py-2">{parseError}</p>
+                )}
+
+                {parsedResult && (
+                  <>
+                    <div className="mt-6 p-5 bg-base-200/80 rounded-xl border border-base-300/50">
+                      <p className="text-sm font-semibold text-base-content/80 mb-3">Parsed profile</p>
+                      <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                        <span className="text-base-content/60">Country</span>
+                        <span className="font-medium">{parsedResult.country}</span>
+                        <span className="text-base-content/60">Name</span>
+                        <span className="font-medium">{parsedResult.name}</span>
+                        <span className="text-base-content/60">Score</span>
+                        <span className="font-medium">{parsedResult.score}</span>
+                        <span className="text-base-content/60">History</span>
+                        <span className="font-medium">{parsedResult.ageMonths} months</span>
+                        <span className="text-base-content/60">Cards</span>
+                        <span className="font-medium">{parsedResult.cards}</span>
+                        <span className="text-base-content/60">Total accounts</span>
+                        <span className="font-medium">{parsedResult.totalAccounts}</span>
+                        <span className="text-base-content/60">Utilization</span>
+                        <span className="font-medium">{parsedResult.utilization}</span>
+                        <span className="text-base-content/60">Delinquencies</span>
+                        <span className="font-medium">{parsedResult.delinquencies}</span>
+                      </div>
+                      <div className="flex flex-wrap gap-3 mt-5">
+                        <button
+                          type="button"
+                          className="btn btn-ghost rounded-xl"
+                          onClick={handleCancel}
+                          disabled={isAddProfilePending}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-primary rounded-xl shadow-md"
+                          onClick={handleConfirm}
+                          disabled={isAddProfilePending}
+                        >
+                          {isAddProfilePending ? "Saving…" : "Confirm & save on-chain"}
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
-              {parseError && (
-                <p className="text-error text-sm mt-1">{parseError}</p>
-              )}
+            </section>
 
-              {parsedResult && (
-                <>
-                  <div className="mt-6 p-4 bg-base-200 rounded-lg font-mono text-sm whitespace-pre">
-                    Parsed Credit Profile:
-                    {"\n"}
-                    Country: {parsedResult.country}
-                    {"\n"}
-                    Name: {parsedResult.name}
-                    {"\n"}
-                    Score: {parsedResult.score}
-                    {"\n"}
-                    Age: {parsedResult.ageMonths} months
-                    {"\n"}
-                    Cards: {parsedResult.cards} active
-                    {"\n"}
-                    Total accounts: {parsedResult.totalAccounts}
-                    {"\n"}
-                    Utilization: {parsedResult.utilization}
-                    {"\n"}
-                    Delinquencies: {parsedResult.delinquencies}
-                  </div>
-                  <div className="flex gap-2 mt-4">
-                    <button
-                      type="button"
-                      className="btn btn-ghost"
-                      onClick={handleCancel}
-                      disabled={isAddProfilePending}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={handleConfirm}
-                      disabled={isAddProfilePending}
-                    >
-                      {isAddProfilePending ? "Saving…" : "Confirm & Save on-chain"}
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {profiles.length > 0 && (
-              <div className="mt-10 space-y-3">
-                <h2 className="text-xl font-semibold">Your Global Credit Profiles</h2>
-                <div className="space-y-2">
+            {/* Your profiles */}
+            <section>
+              <h2 className="text-xl font-semibold text-base-content mb-4">Your credit profiles</h2>
+              {profiles.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-base-300 bg-base-100/50 py-10 px-6 text-center">
+                  <p className="text-base-content/60 text-sm">
+                    No profiles yet. Add a credit report above and save it on-chain to see it here.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
                   {profiles.map((p, i) => {
                     const key = `${p.country}-${p.timestamp}-${i}`;
                     const isExpanded = expandedProfileKey === key;
                     return (
                       <div
                         key={key}
-                        className="card bg-base-200 shadow-sm hover:shadow-md transition-shadow"
+                        className="card bg-base-100 rounded-2xl shadow-md border border-base-300/40 overflow-hidden transition-all hover:shadow-lg"
                       >
                         <button
                           type="button"
-                          className="text-left p-4 flex items-center justify-between gap-2 w-full rounded-lg"
+                          className="text-left w-full p-4 sm:p-5 flex items-center gap-3 min-w-0"
                           onClick={() => setExpandedProfileKey(isExpanded ? null : key)}
                         >
-                          <span className="font-medium">
-                            {COUNTRY_FLAGS[p.country] ?? ""} {p.country}: {p.score} ({p.ageMonths}mo, {p.cards}{" "}
-                            cards)
+                          <span className="font-medium text-base-content truncate min-w-0">
+                            {COUNTRY_FLAGS[p.country] ?? ""} {p.country} · {p.score}
                           </span>
-                          <span className="text-base-content/60 text-sm">
-                            {isExpanded ? "▼ Hide" : "▶ View details"}
+                          <span className="text-base-content/50 text-sm shrink-0 hidden sm:inline">
+                            {p.ageMonths}mo · {p.cards} cards
+                          </span>
+                          <span className="text-base-content/40 text-sm shrink-0 ml-auto">
+                            {isExpanded ? "▲ Less" : "▼ More"}
                           </span>
                         </button>
                         {isExpanded && (
-                          <div className="px-4 pb-4 pt-0 border-t border-base-300/50">
-                            <div className="mt-3 font-mono text-sm whitespace-pre">
-                              Country: {p.country}
-                              {"\n"}
-                              Name: {p.name ?? "—"}
-                              {"\n"}
-                              Score: {p.score}
-                              {"\n"}
-                              Age: {p.ageMonths} months
-                              {"\n"}
-                              Cards: {p.cards} active
-                              {"\n"}
-                              Total accounts: {p.totalAccounts ?? "—"}
-                              {"\n"}
-                              Utilization: {p.utilization}
-                              {"\n"}
-                              Delinquencies: {p.delinquencies ?? "—"}
+                          <div className="px-4 sm:px-5 pb-4 sm:pb-5 pt-0 border-t border-base-300/50">
+                            <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm pt-4">
+                              <span className="text-base-content/60">Country</span>
+                              <span className="font-medium">{p.country}</span>
+                              <span className="text-base-content/60">Name</span>
+                              <span className="font-medium">{p.name ?? "—"}</span>
+                              <span className="text-base-content/60">Score</span>
+                              <span className="font-medium">{p.score}</span>
+                              <span className="text-base-content/60">History</span>
+                              <span className="font-medium">{p.ageMonths} months</span>
+                              <span className="text-base-content/60">Cards</span>
+                              <span className="font-medium">{p.cards}</span>
+                              <span className="text-base-content/60">Total accounts</span>
+                              <span className="font-medium">{p.totalAccounts ?? "—"}</span>
+                              <span className="text-base-content/60">Utilization</span>
+                              <span className="font-medium">{p.utilization}</span>
+                              <span className="text-base-content/60">Delinquencies</span>
+                              <span className="font-medium">{p.delinquencies ?? "—"}</span>
                             </div>
                           </div>
                         )}
@@ -493,9 +519,45 @@ export default function PassportPage() {
                     );
                   })}
                 </div>
+              )}
+            </section>
+
+            {/* Developer: Gemini debug (collapsible) */}
+            <details
+              className="group card bg-base-100/60 rounded-2xl border border-base-300/40 overflow-hidden [&::-webkit-details-marker]:hidden"
+              open={debugOpen}
+              onToggle={e => setDebugOpen((e.target as HTMLDetailsElement).open)}
+            >
+              <summary className="list-none cursor-pointer p-4 sm:p-5 font-medium text-base-content/80 hover:text-base-content [&::-webkit-details-marker]:hidden">
+                <span className="flex items-center gap-2">
+                  Developer · Gemini debug
+                  <span className="text-base-content/40 text-sm font-normal">(custom prompt)</span>
+                </span>
+              </summary>
+              <div className="px-4 sm:px-5 pb-4 sm:pb-5 pt-0 space-y-3">
+                <input
+                  type="text"
+                  className="input input-bordered w-full rounded-xl"
+                  placeholder="e.g. Explain how AI works in a few words"
+                  value={geminiDebugPrompt}
+                  onChange={e => setGeminiDebugPrompt(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm rounded-xl"
+                  onClick={handleGeminiDebug}
+                  disabled={geminiLoading}
+                >
+                  {geminiLoading ? "…" : "Send to Gemini"}
+                </button>
+                {geminiResult != null && (
+                  <pre className="p-4 bg-base-200 rounded-xl text-sm overflow-auto whitespace-pre-wrap border border-base-300/50">
+                    {geminiResult}
+                  </pre>
+                )}
               </div>
-            )}
-          </>
+            </details>
+          </div>
         )}
       </div>
     </div>
