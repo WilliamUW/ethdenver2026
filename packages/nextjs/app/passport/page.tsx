@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Address } from "@scaffold-ui/components";
 import toast from "react-hot-toast";
 import { hardhat } from "viem/chains";
 import { useAccount } from "wagmi";
-import { useTargetNetwork } from "~~/hooks/scaffold-eth";
+import { useScaffoldReadContract, useScaffoldWriteContract, useTargetNetwork } from "~~/hooks/scaffold-eth";
 
 
 const COUNTRIES = [
@@ -32,12 +32,15 @@ type ParsedProfile = {
 
 type SavedProfile = {
   country: string;
+  name: string;
   score: string;
   scoreNum: number;
   scoreMax: number;
   ageMonths: number;
   cards: number;
+  totalAccounts: number;
   utilization: string;
+  delinquencies: number;
   timestamp: number;
 };
 
@@ -137,15 +140,20 @@ async function parseReportWithGemini(
 }
 
 function parsedToSaved(p: ParsedProfile): SavedProfile {
-  const [num, max] = p.score.split("/").map(Number);
+  const parts = p.score.split("/").map(Number);
+  const num = parts[0] ?? 0;
+  const max = parts[1] ?? 850;
   return {
     country: p.country,
+    name: p.name,
     score: p.score,
     scoreNum: num,
     scoreMax: max,
     ageMonths: p.ageMonths,
     cards: p.cards,
+    totalAccounts: p.totalAccounts,
     utilization: p.utilization,
+    delinquencies: p.delinquencies,
     timestamp: Date.now(),
   };
 }
@@ -156,20 +164,67 @@ function computeGlobalScore(profiles: SavedProfile[]): number | null {
   return Math.round(normalizedSum / profiles.length);
 }
 
+type ContractProfile = {
+  country: string;
+  name: string;
+  score: string;
+  ageMonths: bigint;
+  cards: bigint;
+  totalAccounts: bigint;
+  utilization: string;
+  delinquencies: bigint;
+  timestamp: bigint;
+};
+
+function contractProfileToSaved(p: ContractProfile): SavedProfile {
+  const parts = p.score.split("/").map(Number);
+  const scoreNum = parts[0] ?? 0;
+  const scoreMax = parts[1] ?? 850;
+  return {
+    country: p.country,
+    name: p.name,
+    score: p.score,
+    scoreNum,
+    scoreMax,
+    ageMonths: Number(p.ageMonths),
+    cards: Number(p.cards),
+    totalAccounts: Number(p.totalAccounts),
+    utilization: p.utilization,
+    delinquencies: Number(p.delinquencies),
+    timestamp: Number(p.timestamp),
+  };
+}
+
 export default function PassportPage() {
   const { address, isConnected } = useAccount();
   const { targetNetwork } = useTargetNetwork();
   const [reportText, setReportText] = useState("");
   const [selectedCountry, setSelectedCountry] = useState<string>(COUNTRIES[0].value);
   const [parsedResult, setParsedResult] = useState<ParsedProfile | null>(null);
-  const [profiles, setProfiles] = useState<SavedProfile[]>([]);
   const [geminiLoading, setGeminiLoading] = useState(false);
+
+  const { data: contractProfiles } = useScaffoldReadContract({
+    contractName: "CreditPassport",
+    functionName: "getProfiles",
+    args: [address] as readonly [string | undefined],
+  });
+
+  const profiles: SavedProfile[] = useMemo(() => {
+    if (!contractProfiles || !Array.isArray(contractProfiles)) return [];
+    return (contractProfiles as ContractProfile[]).map(contractProfileToSaved);
+  }, [contractProfiles]);
+
+  const { writeContractAsync: addProfileToContract, isPending: isAddProfilePending } =
+    useScaffoldWriteContract({
+      contractName: "CreditPassport",
+    });
   const [geminiResult, setGeminiResult] = useState<string | null>(null);
   const [geminiDebugPrompt, setGeminiDebugPrompt] = useState(
     "Explain how AI works in a few words",
   );
   const [parseLoading, setParseLoading] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
+  const [expandedProfileKey, setExpandedProfileKey] = useState<string | null>(null);
 
   const handleGeminiDebug = async () => {
     const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
@@ -222,11 +277,27 @@ export default function PassportPage() {
     setSelectedCountry(COUNTRIES[0].value);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!parsedResult) return;
-    setProfiles(prev => [...prev, parsedToSaved(parsedResult)]);
-    toast.success("Credit profile saved to your passport.");
-    handleCancel();
+    try {
+      await addProfileToContract({
+        functionName: "addProfile",
+        args: [
+          parsedResult.country,
+          parsedResult.name,
+          parsedResult.score,
+          BigInt(parsedResult.ageMonths),
+          BigInt(parsedResult.cards),
+          BigInt(parsedResult.totalAccounts),
+          parsedResult.utilization,
+          BigInt(parsedResult.delinquencies),
+        ],
+      });
+      toast.success("Credit profile saved on-chain.");
+      handleCancel();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to save profile");
+    }
   };
 
   return (
@@ -351,11 +422,21 @@ export default function PassportPage() {
                     Delinquencies: {parsedResult.delinquencies}
                   </div>
                   <div className="flex gap-2 mt-4">
-                    <button type="button" className="btn btn-ghost" onClick={handleCancel}>
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      onClick={handleCancel}
+                      disabled={isAddProfilePending}
+                    >
                       Cancel
                     </button>
-                    <button type="button" className="btn btn-primary" onClick={handleConfirm}>
-                      Confirm & Save to Profile
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={handleConfirm}
+                      disabled={isAddProfilePending}
+                    >
+                      {isAddProfilePending ? "Saving…" : "Confirm & Save on-chain"}
                     </button>
                   </div>
                 </>
@@ -365,13 +446,53 @@ export default function PassportPage() {
             {profiles.length > 0 && (
               <div className="mt-10 space-y-3">
                 <h2 className="text-xl font-semibold">Your Global Credit Profiles</h2>
-                <ul className="space-y-2">
-                  {profiles.map((p, i) => (
-                    <li key={`${p.country}-${p.timestamp}-${i}`} className="p-3 bg-base-200 rounded-lg">
-                      {COUNTRY_FLAGS[p.country] ?? ""} {p.country}: {p.score} ({p.ageMonths}mo, {p.cards} cards)
-                    </li>
-                  ))}
-                </ul>
+                <div className="space-y-2">
+                  {profiles.map((p, i) => {
+                    const key = `${p.country}-${p.timestamp}-${i}`;
+                    const isExpanded = expandedProfileKey === key;
+                    return (
+                      <div
+                        key={key}
+                        className="card bg-base-200 shadow-sm hover:shadow-md transition-shadow"
+                      >
+                        <button
+                          type="button"
+                          className="text-left p-4 flex items-center justify-between gap-2 w-full rounded-lg"
+                          onClick={() => setExpandedProfileKey(isExpanded ? null : key)}
+                        >
+                          <span className="font-medium">
+                            {COUNTRY_FLAGS[p.country] ?? ""} {p.country}: {p.score} ({p.ageMonths}mo, {p.cards}{" "}
+                            cards)
+                          </span>
+                          <span className="text-base-content/60 text-sm">
+                            {isExpanded ? "▼ Hide" : "▶ View details"}
+                          </span>
+                        </button>
+                        {isExpanded && (
+                          <div className="px-4 pb-4 pt-0 border-t border-base-300/50">
+                            <div className="mt-3 font-mono text-sm whitespace-pre">
+                              Country: {p.country}
+                              {"\n"}
+                              Name: {p.name ?? "—"}
+                              {"\n"}
+                              Score: {p.score}
+                              {"\n"}
+                              Age: {p.ageMonths} months
+                              {"\n"}
+                              Cards: {p.cards} active
+                              {"\n"}
+                              Total accounts: {p.totalAccounts ?? "—"}
+                              {"\n"}
+                              Utilization: {p.utilization}
+                              {"\n"}
+                              Delinquencies: {p.delinquencies ?? "—"}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </>
