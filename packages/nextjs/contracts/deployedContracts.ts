@@ -6,6 +6,229 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 
 const deployedContracts = {
   31337: {
+    CreditPassport: {
+      address: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+      abi: [
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "user",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "index",
+              type: "uint256",
+            },
+          ],
+          name: "ProfileAdded",
+          type: "event",
+        },
+        {
+          inputs: [
+            {
+              internalType: "string",
+              name: "country",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "name",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "score",
+              type: "string",
+            },
+            {
+              internalType: "uint256",
+              name: "ageMonths",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "cards",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "totalAccounts",
+              type: "uint256",
+            },
+            {
+              internalType: "string",
+              name: "utilization",
+              type: "string",
+            },
+            {
+              internalType: "uint256",
+              name: "delinquencies",
+              type: "uint256",
+            },
+          ],
+          name: "addProfile",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "user",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "index",
+              type: "uint256",
+            },
+          ],
+          name: "getProfile",
+          outputs: [
+            {
+              internalType: "string",
+              name: "country",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "name",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "score",
+              type: "string",
+            },
+            {
+              internalType: "uint256",
+              name: "ageMonths",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "cards",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "totalAccounts",
+              type: "uint256",
+            },
+            {
+              internalType: "string",
+              name: "utilization",
+              type: "string",
+            },
+            {
+              internalType: "uint256",
+              name: "delinquencies",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "timestamp",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "user",
+              type: "address",
+            },
+          ],
+          name: "getProfileCount",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "user",
+              type: "address",
+            },
+          ],
+          name: "getProfiles",
+          outputs: [
+            {
+              components: [
+                {
+                  internalType: "string",
+                  name: "country",
+                  type: "string",
+                },
+                {
+                  internalType: "string",
+                  name: "name",
+                  type: "string",
+                },
+                {
+                  internalType: "string",
+                  name: "score",
+                  type: "string",
+                },
+                {
+                  internalType: "uint256",
+                  name: "ageMonths",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "cards",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "totalAccounts",
+                  type: "uint256",
+                },
+                {
+                  internalType: "string",
+                  name: "utilization",
+                  type: "string",
+                },
+                {
+                  internalType: "uint256",
+                  name: "delinquencies",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "timestamp",
+                  type: "uint256",
+                },
+              ],
+              internalType: "struct CreditPassport.CreditProfile[]",
+              name: "",
+              type: "tuple[]",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+      ],
+      inheritedFunctions: {},
+      deployedOnBlock: 7,
+    },
     YourContract: {
       address: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
       abi: [
