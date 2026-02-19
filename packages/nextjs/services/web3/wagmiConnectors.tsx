@@ -44,7 +44,7 @@ export const wagmiConnectors = () => {
     ],
 
     {
-      appName: "scaffold-eth-2",
+      appName: "Global Credit Passport",
       projectId: scaffoldConfig.walletConnectProjectId,
     },
   );

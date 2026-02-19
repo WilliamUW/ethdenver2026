@@ -6,8 +6,8 @@ import "~~/styles/globals.css";
 import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
 
 export const metadata = getMetadata({
-  title: "Scaffold-ETH 2 App",
-  description: "Built with 🏗 Scaffold-ETH 2",
+  title: "Global Credit Passport",
+  description: "One score across borders. Build a portable, on-chain credit profile and apply for credit with your global history.",
 });
 
 const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
