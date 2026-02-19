@@ -11,6 +11,7 @@ import { useScaffoldReadContract, useScaffoldWriteContract, useTargetNetwork } f
 
 
 const COUNTRIES = [
+  { value: "Auto", label: "Auto (detect from report)" },
   { value: "Canada", label: "Canada" },
   { value: "USA", label: "USA" },
   { value: "Mexico", label: "Mexico" },
@@ -60,8 +61,8 @@ const COUNTRY_FLAGS: Record<string, string> = {
 
 const PINATA_GATEWAY_BASE = "https://brown-real-puma-604.mypinata.cloud/ipfs/";
 
-const EXTRACTION_PROMPT = `You are a credit report parser. Extract the following fields from the credit report text below and return ONLY a valid JSON object with no other text, no markdown, no code fence. Use exactly these keys:
-- country (string): use the country provided by the user
+const EXTRACTION_PROMPT = `You are a credit report parser working for a conservative, regulated consumer lender. Read the credit report as a loan underwriter would and extract the following fields from the credit report text below. Return ONLY a valid JSON object with no other text, no markdown, no code fence. Use exactly these keys:
+- country (string): if the user's selection is "Auto" or missing, infer the country from the report content. Always map well-known lenders explicitly as follows: any report mentioning Sofi or SoFi should be treated as USA; any report mentioning Borrowell should be treated as Canada. For other cases, infer the country from issuer names, bureaus, and terminology when reasonably clear; otherwise use the country provided by the user, or null if none is given.
 - name (string): account holder name if present, else "Unknown"
 - score (string): credit score, format like "720/850" or "680/900" (score/max). If only one number given, use that number and common max for that country (e.g. 850 USA, 900 Canada)
 - ageMonths (number): length of credit history in months, or 0 if unknown
@@ -94,7 +95,7 @@ async function callGemini(
     messages: Array<{ role: "user"; content: string }>;
     response_format?: { type: "json_object" | "text" };
   } = {
-    model: "gpt-4o-mini",
+    model: "gpt-4.1-nano",
     messages: [{ role: "user", content: userPrompt }],
   };
 
