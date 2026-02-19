@@ -7,8 +7,14 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   31337: {
     CreditCardApplications: {
-      address: "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
+      address: "0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
       abi: [
+        {
+          anonymous: false,
+          inputs: [],
+          name: "AllApplicationsReset",
+          type: "event",
+        },
         {
           anonymous: false,
           inputs: [
@@ -197,6 +203,13 @@ const deployedContracts = {
         },
         {
           inputs: [],
+          name: "resetAll",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
           name: "submitApplication",
           outputs: [],
           stateMutability: "nonpayable",
@@ -204,7 +217,7 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 31,
+      deployedOnBlock: 38,
     },
     CreditPassport: {
       address: "0x0165878A594ca255338adfa4d48449f69242Eb8F",

@@ -43,6 +43,18 @@ const AdminCardApplicationsPage = () => {
     }
   };
 
+  const handleResetAll = async () => {
+    if (!confirm("Delete all applications? This cannot be undone.")) return;
+    try {
+      await writeContractAsync({
+        functionName: "resetAll",
+        args: [],
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6 p-6 max-w-3xl mx-auto">
       <div className="flex items-center justify-between">
@@ -56,7 +68,18 @@ const AdminCardApplicationsPage = () => {
       </div>
 
       <div className="border rounded-lg p-4 space-y-4">
-        <p className="font-semibold">All applications</p>
+        <div className="flex items-center justify-between">
+          <p className="font-semibold">All applications</p>
+          {applicants && applicants.length > 0 && (
+            <button
+              className="btn btn-sm btn-error"
+              disabled={!address || isPending}
+              onClick={handleResetAll}
+            >
+              Delete all
+            </button>
+          )}
+        </div>
         {!applicants || applicants.length === 0 ? (
           <p>No applications yet.</p>
         ) : (

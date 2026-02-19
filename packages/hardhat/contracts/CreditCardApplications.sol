@@ -31,6 +31,7 @@ contract CreditCardApplications {
     event ApplicationSubmitted(address indexed applicant);
     event ApplicationApproved(address indexed applicant);
     event ApplicationRejected(address indexed applicant);
+    event AllApplicationsReset();
 
     /**
      * Submit a credit card application.
@@ -94,6 +95,18 @@ contract CreditCardApplications {
         app.decidedAt = block.timestamp;
 
         emit ApplicationRejected(applicant);
+    }
+
+    /**
+     * Delete all applications and reset the contract state.
+     * Callable by anyone – for demo/testing use.
+     */
+    function resetAll() external {
+        for (uint256 i = 0; i < _applicants.length; i++) {
+            delete _applications[_applicants[i]];
+        }
+        delete _applicants;
+        emit AllApplicationsReset();
     }
 }
 
