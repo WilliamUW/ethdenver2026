@@ -543,7 +543,7 @@ function parsedToSaved(p: ParsedProfile): SavedProfile {
 
 function computeGlobalScore(profiles: SavedProfile[]): number | null {
   if (profiles.length === 0) return null;
-  const normalizedSum = profiles.reduce((sum, p) => sum + (p.scoreNum / p.scoreMax) * 850, 0);
+  const normalizedSum = profiles.reduce((sum, p) => sum + (p.scoreNum / p.scoreMax) * 100, 0);
   return Math.round(normalizedSum / profiles.length);
 }
 
@@ -600,6 +600,8 @@ export default function PassportPage() {
     if (!contractProfiles || !Array.isArray(contractProfiles)) return [];
     return (contractProfiles as ContractProfile[]).map(contractProfileToSaved);
   }, [contractProfiles]);
+
+  const globalScore = useMemo(() => computeGlobalScore(profiles), [profiles]);
 
   const { writeContractAsync: addProfileToContract, isPending: isAddProfilePending } = useScaffoldWriteContract({
     contractName: "CreditPassport",
@@ -880,12 +882,45 @@ export default function PassportPage() {
         ) : (
           <div className="space-y-8">
             {/* Global score + wallet */}
-            {profiles.length > 0 && (
+            {profiles.length > 0 && globalScore !== null && (
               <div className="card bg-base-100 rounded-2xl shadow-lg border border-base-300/40 overflow-hidden border-l-4 border-l-primary">
                 <div className="card-body p-6 sm:p-8">
-                  <p className="text-sm font-medium text-base-content/60 uppercase tracking-wider">Your global score</p>
-                  <p className="text-4xl sm:text-5xl font-bold text-primary mt-1">{computeGlobalScore(profiles)}</p>
-                  <p className="text-sm text-base-content/60 mt-1">Normalized from all linked reports</p>
+                  <p className="text-sm font-medium text-base-content/60 uppercase tracking-wider">
+                    Your global normalized score (0–100)
+                  </p>
+                  <div className="mt-4 flex flex-col sm:flex-row items-center gap-6">
+                    <div className="relative w-28 h-28 sm:w-32 sm:h-32">
+                      <div
+                        className="absolute inset-0 rounded-full"
+                        style={{
+                          background:
+                            "conic-gradient(#f97373 0deg, #f97373 120deg, #facc15 120deg, #facc15 210deg, #22c55e 210deg, #22c55e 360deg)",
+                        }}
+                      />
+                      <div className="absolute inset-2 rounded-full bg-base-100 flex flex-col items-center justify-center text-base-content">
+                        <span className="text-3xl font-bold">{globalScore}</span>
+                        <span className="text-xs text-base-content/60">out of 100</span>
+                      </div>
+                    </div>
+                    <div className="flex-1 space-y-2 text-sm">
+                      <p className="text-base-content/80">
+                        This is your <span className="font-semibold">global normalized credit score</span>, on a simple
+                        0–100 scale.
+                      </p>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:text-[0.8rem]">
+                        <span className="font-medium text-error">0–39 · Higher risk</span>
+                        <span className="font-medium text-warning">40–59 · Fair</span>
+                        <span className="font-medium text-success">60–79 · Good</span>
+                        <span className="font-medium text-success">80–100 · Excellent</span>
+                      </div>
+                      <p className="text-[0.7rem] text-base-content/60 leading-relaxed">
+                        Traditional credit bureaus use different maximum scores (for example 850 or 900). To compare
+                        reports from many countries, we rescale each underlying score to a common 0–100 range and then
+                        average them. The 100-point cap is an arbitrary normalization so this number should be treated
+                        as an aggregated indicator, not a bureau-issued score.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
