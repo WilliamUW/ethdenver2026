@@ -1031,40 +1031,40 @@ export default function PassportPage() {
 
                 {parsedResult && (
                   <>
-                    <div className="mt-6 p-6 bg-white/5 backdrop-blur-lg rounded-2xl border border-white/20">
+                    <div className="mt-6 p-6 bg-slate-800/95 backdrop-blur-lg rounded-2xl border border-slate-600/50 shadow-xl">
                       <p className="text-lg font-bold text-white mb-4">Parsed profile</p>
                       <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm mb-6">
-                        <span className="text-indigo-200">Country</span>
+                        <span className="text-slate-300">Country</span>
                         <span className="font-medium text-white">{parsedResult.country}</span>
-                        <span className="text-indigo-200">Name</span>
+                        <span className="text-slate-300">Name</span>
                         <span className="font-medium text-white">{parsedResult.name}</span>
-                        <span className="text-indigo-200">Score</span>
+                        <span className="text-slate-300">Score</span>
                         <span className="font-medium text-white">{parsedResult.score}</span>
-                        <span className="text-indigo-200">History</span>
+                        <span className="text-slate-300">History</span>
                         <span className="font-medium text-white">{parsedResult.ageMonths} months</span>
-                        <span className="text-indigo-200">Cards</span>
+                        <span className="text-slate-300">Cards</span>
                         <span className="font-medium text-white">{parsedResult.cards}</span>
-                        <span className="text-indigo-200">Total accounts</span>
+                        <span className="text-slate-300">Total accounts</span>
                         <span className="font-medium text-white">{parsedResult.totalAccounts}</span>
-                        <span className="text-indigo-200">Utilization</span>
+                        <span className="text-slate-300">Utilization</span>
                         <span className="font-medium text-white">{parsedResult.utilization}</span>
-                        <span className="text-indigo-200">Delinquencies</span>
+                        <span className="text-slate-300">Delinquencies</span>
                         <span className="font-medium text-white">{parsedResult.delinquencies}</span>
                       </div>
                       {(parsedResult.analysis || parsedResult.markdownSummary) && (
                         <div className="mt-5 space-y-4">
                           {parsedResult.analysis && (
                             <div>
-                              <p className="text-sm font-semibold text-indigo-200 mb-2">AI analysis</p>
-                              <p className="text-sm text-white/90 whitespace-pre-line bg-white/5 rounded-xl p-4 border border-white/10">
+                              <p className="text-sm font-semibold text-slate-300 mb-2">AI analysis</p>
+                              <p className="text-sm text-slate-200 whitespace-pre-line bg-slate-700/50 rounded-xl p-4 border border-slate-600/50">
                                 {parsedResult.analysis}
                               </p>
                             </div>
                           )}
                           {parsedResult.markdownSummary && (
                             <div>
-                              <p className="text-sm font-semibold text-indigo-200 mb-2">Credit report summary</p>
-                              <div className="bg-white/5 rounded-xl border border-white/10 p-4 text-sm text-white/90">
+                              <p className="text-sm font-semibold text-slate-300 mb-2">Credit report summary</p>
+                              <div className="bg-slate-700/50 rounded-xl border border-slate-600/50 p-4 text-sm text-slate-200 [&_*]:text-slate-200">
                                 <ReactMarkdown>{parsedResult.markdownSummary}</ReactMarkdown>
                               </div>
                             </div>
