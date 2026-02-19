@@ -58,6 +58,8 @@ const COUNTRY_FLAGS: Record<string, string> = {
   Singapore: "🇸🇬",
 };
 
+const PINATA_GATEWAY_BASE = "https://brown-real-puma-604.mypinata.cloud/ipfs/";
+
 const EXTRACTION_PROMPT = `You are a credit report parser. Extract the following fields from the credit report text below and return ONLY a valid JSON object with no other text, no markdown, no code fence. Use exactly these keys:
 - country (string): use the country provided by the user
 - name (string): account holder name if present, else "Unknown"
@@ -67,8 +69,14 @@ const EXTRACTION_PROMPT = `You are a credit report parser. Extract the following
 - totalAccounts (number): total number of credit accounts (cards, loans, etc.)
 - utilization (string): credit utilization as percentage, e.g. "28%"
 - delinquencies (number): number of late payments or delinquencies, 0 if none/none mentioned
-- analysis (string): an AI analysis of the user's credit score and profile, focusing on strengths, weaknesses, risk factors, and concrete suggestions for improvement. Use clear, plain language.
-- markdownSummary (string): a well-structured Markdown summary of the credit report with headings and bullet points. Include sections like "Overview", "Key Metrics", "Risk Factors", and "Recommendations".
+- analysis (string): a SHORT AI analysis paragraph (3–5 sentences maximum) of the user's credit score and profile, focusing on the single most important strength, the single most important risk factor, and 2–3 concrete suggestions for improvement. Use clear, plain language and avoid lists or bullet points in this field.
+- markdownSummary (string): a VERY DETAILED and BEAUTIFULLY FORMATTED Markdown summary of the credit report. Structure it with rich headings, subheadings, and visual variation. At minimum include sections like:
+  - "# Overview" with key high-level bullets
+  - "## Score & History" with bold labels and inline values
+  - "## Accounts Breakdown" listing EVERY available credit card and other accounts, with bullets that show issuer / type, status (open/closed), credit limit, current balance, and any notable remarks
+  - "## Utilization & Risk Factors" with clearly separated subsections for utilization, recent inquiries, delinquencies, and any derogatory items
+  - "## Recommendations" with clearly formatted bullet points grouped under at least two subheadings (for example "Short term" and "Long term").
+Use a mix of heading levels (#, ##, ###), bold text, bullet lists, and occasional inline code-style backticks for labels where appropriate to make the Markdown visually appealing and easy to scan.
 
 PRIVACY REQUIREMENTS:
 - Do NOT include any personally identifying information beyond the account holder's name.
@@ -206,6 +214,7 @@ function contractProfileToSaved(p: ContractProfile): SavedProfile {
     utilization: p.utilization,
     delinquencies: Number(p.delinquencies),
     timestamp: Number(p.timestamp),
+    ipfsCid: p.ipfsCid,
   };
 }
 
@@ -594,6 +603,21 @@ export default function PassportPage() {
                               <span className="font-medium">{p.utilization}</span>
                               <span className="text-base-content/60">Delinquencies</span>
                               <span className="font-medium">{p.delinquencies ?? "—"}</span>
+                              {p.ipfsCid && (
+                                <>
+                                  <span className="text-base-content/60">IPFS</span>
+                                  <span className="font-medium break-all">
+                                    <a
+                                      href={`${PINATA_GATEWAY_BASE}${p.ipfsCid}`}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="link link-primary"
+                                    >
+                                      {p.ipfsCid}
+                                    </a>
+                                  </span>
+                                </>
+                              )}
                             </div>
                           </div>
                         )}
