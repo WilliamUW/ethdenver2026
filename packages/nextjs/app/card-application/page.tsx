@@ -25,7 +25,8 @@ const CardApplicationPage = () => {
 
   const { data: myApplication } = useScaffoldReadContract({
     contractName: "CreditCardApplications",
-    functionName: "getMyApplication",
+    functionName: "getApplication",
+    args: address ? [address] : undefined,
     watch: true,
   }) as { data: ApplicationStruct | undefined };
 
