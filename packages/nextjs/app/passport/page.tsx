@@ -917,9 +917,9 @@ export default function PassportPage() {
                           <div className="absolute w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-base-content" />
                         </div>
                       </div>
-                      <div className="flex justify-between w-full max-w-xs px-1 text-[0.65rem] text-base-content/70">
+                      <div className="grid grid-cols-5 gap-3 w-full max-w-xs px-1 text-[0.65rem] text-base-content/70">
                         <div className="flex flex-col items-center gap-1">
-                          <span className="w-2.5 h-2.5 rounded-full bg-error" />
+                          <span className="w-2.5 h-2.5 rounded-full bg-error/80" />
                           <span>0–19</span>
                         </div>
                         <div className="flex flex-col items-center gap-1">
@@ -935,7 +935,7 @@ export default function PassportPage() {
                           <span>60–79</span>
                         </div>
                         <div className="flex flex-col items-center gap-1">
-                          <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
+                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
                           <span>80–100</span>
                         </div>
                       </div>
@@ -950,10 +950,10 @@ export default function PassportPage() {
                         0–100 scale.
                       </p>
                       <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:text-[0.8rem]">
-                        <span className="font-medium text-error">0–39 · Higher risk</span>
-                        <span className="font-medium text-warning">40–59 · Fair</span>
-                        <span className="font-medium text-success">60–79 · Good</span>
-                        <span className="font-medium text-success">80–100 · Excellent</span>
+                        <span className="font-medium text-error/90">0–39 · Higher risk</span>
+                        <span className="font-medium text-amber-400">40–59 · Fair</span>
+                        <span className="font-medium text-lime-400">60–79 · Good</span>
+                        <span className="font-medium text-emerald-400">80–100 · Excellent</span>
                       </div>
                       <p className="text-[0.7rem] text-base-content/60 leading-relaxed">
                         Traditional credit bureaus use different maximum scores (for example 850 or 900). To compare
