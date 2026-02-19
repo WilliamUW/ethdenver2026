@@ -9,7 +9,6 @@ import { hardhat } from "viem/chains";
 import { useAccount } from "wagmi";
 import { useScaffoldReadContract, useScaffoldWriteContract, useTargetNetwork } from "~~/hooks/scaffold-eth";
 
-
 const COUNTRIES = [
   { value: "Auto", label: "Auto (detect from report)" },
   { value: "Canada", label: "Canada" },
@@ -432,7 +431,6 @@ See disclaimers
 SSL Encrypted
 Equal Housing ORT"`;
 
-
 const EXTRACTION_PROMPT = `You are a credit report parser working for a conservative, regulated consumer lender. Read the credit report as a loan underwriter would and extract the following fields from the credit report text below. Return ONLY a valid JSON object with no other text, no markdown, no code fence. Use exactly these keys:
 - country (string): if the user's selection is "Auto" or missing, infer the country from the report content. Always map well-known lenders explicitly as follows: any report mentioning Sofi or SoFi should be treated as USA; any report mentioning Borrowell should be treated as Canada. For other cases, infer the country from issuer names, bureaus, and terminology when reasonably clear; otherwise use the country provided by the user, or null if none is given.
 - name (string): account holder name if present, else "Unknown"
@@ -457,11 +455,7 @@ PRIVACY REQUIREMENTS:
 
 If a value cannot be found, use null for that key. Return only the JSON object.`;
 
-async function callGemini(
-  apiKey: string,
-  userPrompt: string,
-  options?: { responseJson?: boolean },
-): Promise<string> {
+async function callGemini(apiKey: string, userPrompt: string, options?: { responseJson?: boolean }): Promise<string> {
   const body: {
     model: string;
     messages: Array<{ role: "user"; content: string }>;
@@ -502,8 +496,7 @@ function extractJsonFromResponse(text: string): string {
 function parseExtractionPayload(jsonStr: string, country: string): ParsedProfile {
   const raw = JSON.parse(jsonStr) as Record<string, unknown>;
   const num = (v: unknown): number => (typeof v === "number" && !Number.isNaN(v) ? v : 0);
-  const str = (v: unknown, fallback: string): string =>
-    typeof v === "string" && v.length > 0 ? v : fallback;
+  const str = (v: unknown, fallback: string): string => (typeof v === "string" && v.length > 0 ? v : fallback);
   const scoreRaw = raw.score;
   let score = "0/850";
   if (typeof scoreRaw === "string" && scoreRaw.length > 0) score = scoreRaw;
@@ -522,11 +515,7 @@ function parseExtractionPayload(jsonStr: string, country: string): ParsedProfile
   };
 }
 
-async function parseReportWithGemini(
-  apiKey: string,
-  reportText: string,
-  country: string,
-): Promise<ParsedProfile> {
+async function parseReportWithGemini(apiKey: string, reportText: string, country: string): Promise<ParsedProfile> {
   const fullPrompt = `${EXTRACTION_PROMPT}\n\nUser's country: ${country}\n\nCredit report:\n${reportText}`;
   const response = await callGemini(apiKey, fullPrompt, { responseJson: true });
   const jsonStr = extractJsonFromResponse(response);
@@ -612,14 +601,11 @@ export default function PassportPage() {
     return (contractProfiles as ContractProfile[]).map(contractProfileToSaved);
   }, [contractProfiles]);
 
-  const { writeContractAsync: addProfileToContract, isPending: isAddProfilePending } =
-    useScaffoldWriteContract({
-      contractName: "CreditPassport",
-    });
+  const { writeContractAsync: addProfileToContract, isPending: isAddProfilePending } = useScaffoldWriteContract({
+    contractName: "CreditPassport",
+  });
   const [geminiResult, setGeminiResult] = useState<string | null>(null);
-  const [geminiDebugPrompt, setGeminiDebugPrompt] = useState(
-    "Explain how AI works in a few words",
-  );
+  const [geminiDebugPrompt, setGeminiDebugPrompt] = useState("Explain how AI works in a few words");
   const [parseLoading, setParseLoading] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
   const [expandedProfileKey, setExpandedProfileKey] = useState<string | null>(null);
@@ -754,8 +740,7 @@ export default function PassportPage() {
       handleCancel();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to save profile");
-    }
-    finally {
+    } finally {
       setConfirmLoading(false);
     }
   };
@@ -772,9 +757,7 @@ export default function PassportPage() {
                   <p className="text-sm font-semibold uppercase tracking-wide text-base-content/60">
                     Parsing credit report
                   </p>
-                  <p className="text-base text-base-content">
-                    This will take ~30 seconds. Please keep this tab open.
-                  </p>
+                  <p className="text-base text-base-content">This will take ~30 seconds. Please keep this tab open.</p>
                 </div>
               </div>
               <div className="mt-2 space-y-2 text-sm">
@@ -783,8 +766,8 @@ export default function PassportPage() {
                     {parseElapsedSeconds < 10
                       ? "Parsing score…"
                       : parseElapsedSeconds < 20
-                      ? "Parsing history…"
-                      : "Parsing cards & accounts…"}
+                        ? "Parsing history…"
+                        : "Parsing cards & accounts…"}
                   </span>
                 </p>
                 <ul className="text-xs sm:text-sm space-y-1 text-base-content/70">
@@ -815,12 +798,32 @@ export default function PassportPage() {
           </div>
         </div>
       )}
+      {(confirmLoading || isAddProfilePending) && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-base-300/70 backdrop-blur-sm">
+          <div className="card bg-base-100 shadow-2xl rounded-2xl border border-base-300/60 w-full max-w-md mx-4 animate-fade-in">
+            <div className="card-body p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <span className="loading loading-spinner loading-md text-primary" />
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-wide text-base-content/60">
+                    Confirming on-chain
+                  </p>
+                  <p className="text-base text-base-content">
+                    This will take around 10 seconds while we save your profile to Pinata and confirm the transaction on-chain.
+                  </p>
+                </div>
+              </div>
+              <p className="text-xs text-base-content/60">
+                Please keep this tab open and avoid closing your wallet until the confirmation completes.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
         {/* Hero */}
         <header className="text-center mb-10 sm:mb-14">
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-base-content">
-            Global Credit Passport
-          </h1>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-base-content">Global Credit Passport</h1>
           <p className="mt-2 text-base sm:text-lg text-base-content/70 max-w-md mx-auto">
             One score across borders. Add your credit reports and build a portable, on-chain profile.
           </p>
@@ -856,12 +859,8 @@ export default function PassportPage() {
             {profiles.length > 0 && (
               <div className="card bg-base-100 rounded-2xl shadow-lg border border-base-300/40 overflow-hidden border-l-4 border-l-primary">
                 <div className="card-body p-6 sm:p-8">
-                  <p className="text-sm font-medium text-base-content/60 uppercase tracking-wider">
-                    Your global score
-                  </p>
-                  <p className="text-4xl sm:text-5xl font-bold text-primary mt-1">
-                    {computeGlobalScore(profiles)}
-                  </p>
+                  <p className="text-sm font-medium text-base-content/60 uppercase tracking-wider">Your global score</p>
+                  <p className="text-4xl sm:text-5xl font-bold text-primary mt-1">{computeGlobalScore(profiles)}</p>
                   <p className="text-sm text-base-content/60 mt-1">Normalized from all linked reports</p>
                 </div>
               </div>
@@ -921,9 +920,7 @@ export default function PassportPage() {
                     </button>
                   </div>
                 </div>
-                {parseError && (
-                  <p className="text-error text-sm mt-2 bg-error/10 rounded-lg px-3 py-2">{parseError}</p>
-                )}
+                {parseError && <p className="text-error text-sm mt-2 bg-error/10 rounded-lg px-3 py-2">{parseError}</p>}
 
                 {parsedResult && (
                   <>
@@ -951,9 +948,7 @@ export default function PassportPage() {
                         <div className="mt-5 space-y-3">
                           {parsedResult.analysis && (
                             <div>
-                              <p className="text-sm font-semibold text-base-content/80 mb-1.5">
-                                AI analysis
-                              </p>
+                              <p className="text-sm font-semibold text-base-content/80 mb-1.5">AI analysis</p>
                               <p className="text-sm text-base-content/80 whitespace-pre-line">
                                 {parsedResult.analysis}
                               </p>
@@ -961,9 +956,7 @@ export default function PassportPage() {
                           )}
                           {parsedResult.markdownSummary && (
                             <div>
-                              <p className="text-sm font-semibold text-base-content/80 mb-1.5">
-                                Credit report summary
-                              </p>
+                              <p className="text-sm font-semibold text-base-content/80 mb-1.5">Credit report summary</p>
                               <div className="bg-base-100 rounded-xl border border-base-300/60 p-3 text-sm">
                                 <ReactMarkdown>{parsedResult.markdownSummary}</ReactMarkdown>
                               </div>
