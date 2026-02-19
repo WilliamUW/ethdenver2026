@@ -22,6 +22,7 @@ contract CreditPassport {
     mapping(address => CreditProfile[]) private _profiles;
 
     event ProfileAdded(address indexed user, uint256 index);
+    event ProfilesCleared(address indexed user, uint256 previousCount);
 
     function addProfile(
         string calldata country,
@@ -85,5 +86,24 @@ contract CreditPassport {
     /// Returns all profiles for a user in one call (convenience for frontends).
     function getProfiles(address user) external view returns (CreditProfile[] memory) {
         return _profiles[user];
+    }
+
+    /// Convenience helper: returns profiles for msg.sender.
+    function getMyProfiles() external view returns (CreditProfile[] memory) {
+        return _profiles[msg.sender];
+    }
+
+    /**
+     * Deletes all credit profiles for the caller.
+     * Useful for users who want to reset their on-chain credit history.
+     */
+    function deleteMyProfiles() external {
+        uint256 length = _profiles[msg.sender].length;
+        if (length == 0) {
+            return;
+        }
+
+        delete _profiles[msg.sender];
+        emit ProfilesCleared(msg.sender, length);
     }
 }
