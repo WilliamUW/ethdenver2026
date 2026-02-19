@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 import { Address } from "@scaffold-ui/components";
 import toast from "react-hot-toast";
 import { hardhat } from "viem/chains";
@@ -94,7 +94,7 @@ async function callGemini(
     messages: Array<{ role: "user"; content: string }>;
     response_format?: { type: "json_object" | "text" };
   } = {
-    model: "gpt-5-mini",
+    model: "gpt-4o-mini",
     messages: [{ role: "user", content: userPrompt }],
   };
 
@@ -220,11 +220,13 @@ function contractProfileToSaved(p: ContractProfile): SavedProfile {
 
 export default function PassportPage() {
   const { address, isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
   const { targetNetwork } = useTargetNetwork();
   const [reportText, setReportText] = useState("");
   const [selectedCountry, setSelectedCountry] = useState<string>(COUNTRIES[0].value);
   const [parsedResult, setParsedResult] = useState<ParsedProfile | null>(null);
   const [geminiLoading, setGeminiLoading] = useState(false);
+  const [parseElapsedSeconds, setParseElapsedSeconds] = useState(0);
 
   const { data: contractProfiles } = useScaffoldReadContract({
     contractName: "CreditPassport",
@@ -250,6 +252,18 @@ export default function PassportPage() {
   const [expandedProfileKey, setExpandedProfileKey] = useState<string | null>(null);
   const [debugOpen, setDebugOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
+
+  useEffect(() => {
+    if (!parseLoading) {
+      setParseElapsedSeconds(0);
+      return;
+    }
+    const start = Date.now();
+    const intervalId = setInterval(() => {
+      setParseElapsedSeconds(Math.floor((Date.now() - start) / 1000));
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, [parseLoading]);
 
   const uploadProfileToPinata = async (profile: ParsedProfile & { address?: string | null }) => {
     const payload = {
@@ -341,6 +355,11 @@ export default function PassportPage() {
 
   const handleConfirm = async () => {
     if (!parsedResult) return;
+
+    if (!isConnected || !address) {
+      openConnectModal?.();
+      return;
+    }
     try {
       setConfirmLoading(true);
       const cid = await uploadProfileToPinata({ ...parsedResult, address });
@@ -370,6 +389,59 @@ export default function PassportPage() {
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden bg-gradient-to-b from-base-200 via-base-200 to-base-300/80">
+      {parseLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-base-300/70 backdrop-blur">
+          <div className="card bg-base-100 shadow-2xl rounded-2xl border border-base-300/60 w-full max-w-md mx-4 animate-fade-in">
+            <div className="card-body p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <span className="loading loading-spinner loading-md text-primary" />
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-wide text-base-content/60">
+                    Parsing credit report
+                  </p>
+                  <p className="text-base text-base-content">
+                    This will take ~30 seconds. Please keep this tab open.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-2 space-y-2 text-sm">
+                <p className="text-base-content/70">
+                  <span className="font-semibold text-primary">
+                    {parseElapsedSeconds < 10
+                      ? "Parsing score…"
+                      : parseElapsedSeconds < 20
+                      ? "Parsing history…"
+                      : "Parsing cards & accounts…"}
+                  </span>
+                </p>
+                <ul className="text-xs sm:text-sm space-y-1 text-base-content/70">
+                  <li>
+                    <span className={parseElapsedSeconds >= 5 ? "text-success font-medium" : ""}>
+                      • Score & risk profile
+                    </span>
+                  </li>
+                  <li>
+                    <span className={parseElapsedSeconds >= 15 ? "text-success font-medium" : ""}>
+                      • Credit history & delinquencies
+                    </span>
+                  </li>
+                  <li>
+                    <span className={parseElapsedSeconds >= 25 ? "text-success font-medium" : ""}>
+                      • Cards, accounts & utilization
+                    </span>
+                  </li>
+                </ul>
+              </div>
+              <div className="mt-2 text-xs text-base-content/60">
+                Elapsed time:{" "}
+                <span className="font-mono font-semibold text-base-content">
+                  {parseElapsedSeconds.toString().padStart(2, "0")}s
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
         {/* Hero */}
         <header className="text-center mb-10 sm:mb-14">
