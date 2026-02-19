@@ -625,6 +625,7 @@ export default function PassportPage() {
   const [expandedProfileKey, setExpandedProfileKey] = useState<string | null>(null);
   const [debugOpen, setDebugOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
+  const [confirmStep, setConfirmStep] = useState<"idle" | "ipfs" | "blockchain">("idle");
 
   useEffect(() => {
     if (!parseLoading) {
@@ -735,7 +736,9 @@ export default function PassportPage() {
     }
     try {
       setConfirmLoading(true);
+      setConfirmStep("ipfs");
       const cid = await uploadProfileToPinata({ ...parsedResult, address });
+      setConfirmStep("blockchain");
       await (addProfileToContract as any)({
         functionName: "addProfile",
         args: [
@@ -756,6 +759,7 @@ export default function PassportPage() {
       toast.error(e instanceof Error ? e.message : "Failed to save profile");
     } finally {
       setConfirmLoading(false);
+      setConfirmStep("idle");
     }
   };
 
@@ -841,19 +845,57 @@ export default function PassportPage() {
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm">
           <div className="card bg-white/10 backdrop-blur-lg shadow-2xl rounded-2xl border border-white/20 w-full max-w-md mx-4 animate-fade-in">
             <div className="card-body p-6 space-y-4">
-              <div className="flex items-center gap-3">
-                <span className="loading loading-spinner loading-md text-indigo-400" />
-                <div>
-                  <p className="text-sm font-semibold uppercase tracking-wide text-indigo-200">
-                    Confirming on-chain
-                  </p>
-                  <p className="text-base text-white">
-                    This will take around 10 seconds while we save your profile to Pinata and confirm the transaction on-chain.
-                  </p>
+              <p className="text-sm font-semibold uppercase tracking-wide text-indigo-200">
+                Confirm add to blockchain
+              </p>
+              <div className="space-y-3 mt-4">
+                <div
+                  className={`flex items-center gap-3 rounded-xl px-4 py-3 border transition-colors ${
+                    confirmStep === "ipfs"
+                      ? "bg-indigo-500/20 border-indigo-400/40"
+                      : confirmStep === "blockchain"
+                        ? "bg-white/5 border-white/20"
+                        : "bg-white/5 border-white/20"
+                  }`}
+                >
+                  {confirmStep === "blockchain" ? (
+                    <span className="text-green-400 text-lg">✓</span>
+                  ) : confirmStep === "ipfs" ? (
+                    <span className="loading loading-spinner loading-sm text-indigo-400" />
+                  ) : (
+                    <span className="loading loading-spinner loading-sm text-indigo-400" />
+                  )}
+                  <div>
+                    <p className="text-sm font-medium text-white">
+                      Uploading analysis to IPFS
+                    </p>
+                    <p className="text-xs text-white/60">Pinata IPFS (AI analysis & credit summary)</p>
+                  </div>
+                </div>
+                <div
+                  className={`flex items-center gap-3 rounded-xl px-4 py-3 border transition-colors ${
+                    confirmStep === "blockchain"
+                      ? "bg-indigo-500/20 border-indigo-400/40"
+                      : "bg-white/5 border-white/20"
+                  }`}
+                >
+                  {confirmStep === "blockchain" ? (
+                    <span className="loading loading-spinner loading-sm text-indigo-400" />
+                  ) : confirmStep === "ipfs" ? (
+                    <span className="text-white/30 text-lg">2</span>
+                  ) : (
+                    <span className="loading loading-spinner loading-sm text-indigo-400" />
+                  )}
+                  <div>
+                    <p className="text-sm font-medium text-white">
+                      Writing credit profile to blockchain
+                    </p>
+                    <p className="text-xs text-white/60">Confirm in your wallet when prompted</p>
+                  </div>
                 </div>
               </div>
-              <p className="text-xs text-white/60">
-                Please keep this tab open and avoid closing your wallet until the confirmation completes.
+              <p className="text-xs text-white/60 mt-2">
+                Please keep this tab open and avoid closing your wallet until both steps complete.
               </p>
             </div>
           </div>
@@ -1168,7 +1210,7 @@ export default function PassportPage() {
                               <span className="font-medium text-white">{p.delinquencies ?? "—"}</span>
                               {p.ipfsCid && (
                                 <>
-                                  <span className="text-indigo-200">IPFS</span>
+                                  <span className="text-indigo-200">Pinata IPFS link (AI credit analysis & summary)</span>
                                   <span className="font-medium break-all">
                                     <a
                                       href={`${PINATA_GATEWAY_BASE}${p.ipfsCid}`}

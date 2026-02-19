@@ -367,12 +367,12 @@ const AdminApplicationCard: React.FC<CardProps> = ({ applicant, disabled, onDeci
                     )}
                   </div>
                   
-                  {/* IPFS Link */}
+                  {/* Pinata IPFS link to AI credit analysis and credit summary */}
                   {selectedProfile.ipfsCid && (
                     <div className="mt-4 pt-4 border-t border-white/10">
-                      <div className="text-indigo-200 text-xs font-semibold mb-2">📄 Full Report (IPFS)</div>
+                      <div className="text-indigo-200 text-xs font-semibold mb-2">📄 Pinata IPFS link to AI credit analysis and credit summary</div>
                       <div className="text-white/60 text-xs mb-2">
-                        Includes AI analysis and detailed credit report summary
+                        View the full report with AI analysis and detailed credit summary on Pinata.
                       </div>
                       <a
                         href={`https://brown-real-puma-604.mypinata.cloud/ipfs/${selectedProfile.ipfsCid}`}
