@@ -604,6 +604,10 @@ export default function PassportPage() {
   const { writeContractAsync: addProfileToContract, isPending: isAddProfilePending } = useScaffoldWriteContract({
     contractName: "CreditPassport",
   });
+  const { writeContractAsync: deleteProfilesFromContract, isPending: isDeleteProfilesPending } =
+    useScaffoldWriteContract({
+      contractName: "CreditPassport",
+    });
   const [geminiResult, setGeminiResult] = useState<string | null>(null);
   const [geminiDebugPrompt, setGeminiDebugPrompt] = useState("Explain how AI works in a few words");
   const [parseLoading, setParseLoading] = useState(false);
@@ -742,6 +746,26 @@ export default function PassportPage() {
       toast.error(e instanceof Error ? e.message : "Failed to save profile");
     } finally {
       setConfirmLoading(false);
+    }
+  };
+
+  const handleDeleteAllProfiles = async () => {
+    if (!isConnected || !address) {
+      openConnectModal?.();
+      return;
+    }
+    if (profiles.length === 0) {
+      toast("You don't have any profiles to delete.");
+      return;
+    }
+    try {
+      await deleteProfilesFromContract({
+        functionName: "deleteMyProfiles",
+        args: [],
+      } as any);
+      toast.success("All credit profiles deleted.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to delete profiles");
     }
   };
 
@@ -990,7 +1014,19 @@ export default function PassportPage() {
 
             {/* Your profiles */}
             <section>
-              <h2 className="text-xl font-semibold text-base-content mb-4">Your credit profiles</h2>
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <h2 className="text-xl font-semibold text-base-content">Your credit profiles</h2>
+                {profiles.length > 0 && (
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm rounded-xl border border-base-300/60 text-error hover:text-error hover:border-error/70"
+                    onClick={handleDeleteAllProfiles}
+                    disabled={isDeleteProfilesPending || parseLoading || confirmLoading || isAddProfilePending}
+                  >
+                    {isDeleteProfilesPending ? "Deleting…" : "Delete all"}
+                  </button>
+                )}
+              </div>
               {profiles.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-base-300 bg-base-100/50 py-10 px-6 text-center">
                   <p className="text-base-content/60 text-sm">
