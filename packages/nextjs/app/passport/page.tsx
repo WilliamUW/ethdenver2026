@@ -780,23 +780,28 @@ export default function PassportPage() {
   };
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-gradient-to-b from-base-200 via-base-200 to-base-300/80">
+    <div className="min-h-screen w-full overflow-x-hidden bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900">
+      {/* Animated background elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
+      </div>
       {parseLoading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-base-300/70 backdrop-blur">
-          <div className="card bg-base-100 shadow-2xl rounded-2xl border border-base-300/60 w-full max-w-md mx-4 animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur">
+          <div className="card bg-white/10 backdrop-blur-lg shadow-2xl rounded-2xl border border-white/20 w-full max-w-md mx-4 animate-fade-in">
             <div className="card-body p-6 space-y-4">
               <div className="flex items-center gap-3">
-                <span className="loading loading-spinner loading-md text-primary" />
+                <span className="loading loading-spinner loading-md text-indigo-400" />
                 <div>
-                  <p className="text-sm font-semibold uppercase tracking-wide text-base-content/60">
+                  <p className="text-sm font-semibold uppercase tracking-wide text-indigo-200">
                     Parsing credit report
                   </p>
-                  <p className="text-base text-base-content">This will take ~30 seconds. Please keep this tab open.</p>
+                  <p className="text-base text-white">This will take ~30 seconds. Please keep this tab open.</p>
                 </div>
               </div>
               <div className="mt-2 space-y-2 text-sm">
-                <p className="text-base-content/70">
-                  <span className="font-semibold text-primary">
+                <p className="text-white/80">
+                  <span className="font-semibold text-indigo-300">
                     {parseElapsedSeconds < 10
                       ? "Parsing score…"
                       : parseElapsedSeconds < 20
@@ -804,27 +809,27 @@ export default function PassportPage() {
                         : "Parsing cards & accounts…"}
                   </span>
                 </p>
-                <ul className="text-xs sm:text-sm space-y-1 text-base-content/70">
+                <ul className="text-xs sm:text-sm space-y-1 text-white/70">
                   <li>
-                    <span className={parseElapsedSeconds >= 5 ? "text-success font-medium" : ""}>
+                    <span className={parseElapsedSeconds >= 5 ? "text-green-400 font-medium" : ""}>
                       • Score & risk profile
                     </span>
                   </li>
                   <li>
-                    <span className={parseElapsedSeconds >= 15 ? "text-success font-medium" : ""}>
+                    <span className={parseElapsedSeconds >= 15 ? "text-green-400 font-medium" : ""}>
                       • Credit history & delinquencies
                     </span>
                   </li>
                   <li>
-                    <span className={parseElapsedSeconds >= 25 ? "text-success font-medium" : ""}>
+                    <span className={parseElapsedSeconds >= 25 ? "text-green-400 font-medium" : ""}>
                       • Cards, accounts & utilization
                     </span>
                   </li>
                 </ul>
               </div>
-              <div className="mt-2 text-xs text-base-content/60">
+              <div className="mt-2 text-xs text-white/60">
                 Elapsed time:{" "}
-                <span className="font-mono font-semibold text-base-content">
+                <span className="font-mono font-semibold text-white">
                   {parseElapsedSeconds.toString().padStart(2, "0")}s
                 </span>
               </div>
@@ -833,48 +838,49 @@ export default function PassportPage() {
         </div>
       )}
       {(confirmLoading || isAddProfilePending) && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-base-300/70 backdrop-blur-sm">
-          <div className="card bg-base-100 shadow-2xl rounded-2xl border border-base-300/60 w-full max-w-md mx-4 animate-fade-in">
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm">
+          <div className="card bg-white/10 backdrop-blur-lg shadow-2xl rounded-2xl border border-white/20 w-full max-w-md mx-4 animate-fade-in">
             <div className="card-body p-6 space-y-4">
               <div className="flex items-center gap-3">
-                <span className="loading loading-spinner loading-md text-primary" />
+                <span className="loading loading-spinner loading-md text-indigo-400" />
                 <div>
-                  <p className="text-sm font-semibold uppercase tracking-wide text-base-content/60">
+                  <p className="text-sm font-semibold uppercase tracking-wide text-indigo-200">
                     Confirming on-chain
                   </p>
-                  <p className="text-base text-base-content">
+                  <p className="text-base text-white">
                     This will take around 10 seconds while we save your profile to Pinata and confirm the transaction on-chain.
                   </p>
                 </div>
               </div>
-              <p className="text-xs text-base-content/60">
+              <p className="text-xs text-white/60">
                 Please keep this tab open and avoid closing your wallet until the confirmation completes.
               </p>
             </div>
           </div>
         </div>
       )}
-      <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+      <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 py-12">
         {/* Hero */}
-        <header className="text-center mb-10 sm:mb-14">
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-base-content">Global Credit Passport</h1>
-          <p className="mt-2 text-base sm:text-lg text-base-content/70 max-w-md mx-auto">
+        <header className="text-center mb-12">
+          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-white mb-3">Global Credit Passport</h1>
+          <p className="mt-2 text-lg sm:text-xl text-indigo-200 max-w-2xl mx-auto">
             One score across borders. Add your credit reports and build a portable, on-chain profile.
           </p>
         </header>
 
         {!isConnected ? (
           <div className="flex flex-col items-center">
-            <div className="card bg-base-100 rounded-2xl shadow-xl border border-base-300/50 w-full max-w-md overflow-hidden">
+            <div className="card bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/20 w-full max-w-md overflow-hidden">
               <div className="card-body p-8 sm:p-10 text-center">
-                <p className="text-base-content/80 text-lg">
+                <div className="text-6xl mb-4">🌍</div>
+                <p className="text-white text-lg mb-6">
                   Connect your wallet to manage your global credit profile on-chain.
                 </p>
                 <div className="mt-6">
                   <ConnectButton.Custom>
                     {({ openConnectModal, mounted }) => (
                       <button
-                        className="btn btn-primary btn-lg rounded-xl px-8 shadow-lg hover:shadow-xl transition-shadow"
+                        className="btn bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white btn-lg rounded-xl px-8 shadow-lg hover:shadow-xl transition-all border-0"
                         onClick={openConnectModal}
                         type="button"
                         disabled={!mounted}
@@ -891,9 +897,9 @@ export default function PassportPage() {
           <div className="space-y-8">
             {/* Global score + wallet */}
             {profiles.length > 0 && globalScore !== null && (
-              <div className="card bg-base-100 rounded-2xl shadow-lg border border-base-300/40 overflow-hidden border-l-4 border-l-primary">
+              <div className="card bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
                 <div className="card-body p-6 sm:p-8">
-                  <p className="text-sm font-medium text-base-content/60 uppercase tracking-wider">
+                  <p className="text-sm font-medium text-indigo-200 uppercase tracking-wider mb-6">
                     Your global normalized score (0–100)
                   </p>
                   <div className="mt-4 flex flex-col sm:flex-row items-center gap-6">
@@ -906,18 +912,18 @@ export default function PassportPage() {
                               "conic-gradient(#22c55e 0deg, #22c55e 72deg, #a3e635 72deg, #a3e635 144deg, #facc15 144deg, #facc15 216deg, #f97316 216deg, #f97316 288deg, #ef4444 288deg, #ef4444 360deg)",
                           }}
                         />
-                        <div className="absolute inset-3 rounded-full bg-base-100" />
+                        <div className="absolute inset-3 rounded-full bg-slate-900" />
                         <div
                           className="absolute inset-0 flex items-center justify-center"
                           style={{
                             transform: `rotate(${(clampedGlobalScore / 100) * 360 - 90}deg)`,
                           }}
                         >
-                          <div className="w-0.5 sm:w-[3px] h-12 sm:h-16 bg-base-content rounded-full origin-bottom translate-y-2" />
-                          <div className="absolute w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-base-content" />
+                          <div className="w-0.5 sm:w-[3px] h-12 sm:h-16 bg-white rounded-full origin-bottom translate-y-2" />
+                          <div className="absolute w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-white" />
                         </div>
                       </div>
-                      <div className="grid grid-cols-5 gap-3 w-full max-w-xs px-1 text-[0.65rem] text-base-content/70">
+                      <div className="grid grid-cols-5 gap-3 w-full max-w-xs px-1 text-[0.65rem] text-white/70">
                         <div className="flex flex-col items-center gap-1">
                           <span className="w-2.5 h-2.5 rounded-full bg-error/80" />
                           <span>0–19</span>
@@ -939,23 +945,23 @@ export default function PassportPage() {
                           <span>80–100</span>
                         </div>
                       </div>
-                      <div className="mt-1 flex flex-col items-center text-base-content">
+                      <div className="mt-1 flex flex-col items-center text-white">
                         <span className="text-2xl sm:text-3xl font-bold">{globalScore}</span>
-                        <span className="text-[0.65rem] sm:text-xs text-base-content/60">out of 100</span>
+                        <span className="text-[0.65rem] sm:text-xs text-white/60">out of 100</span>
                       </div>
                     </div>
                     <div className="flex-1 space-y-2 text-sm">
-                      <p className="text-base-content/80">
-                        This is your <span className="font-semibold">global normalized credit score</span>, on a simple
+                      <p className="text-white/90">
+                        This is your <span className="font-semibold text-indigo-300">global normalized credit score</span>, on a simple
                         0–100 scale.
                       </p>
                       <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:text-[0.8rem]">
-                        <span className="font-medium text-error/90">0–39 · Higher risk</span>
+                        <span className="font-medium text-red-400">0–39 · Higher risk</span>
                         <span className="font-medium text-amber-400">40–59 · Fair</span>
                         <span className="font-medium text-lime-400">60–79 · Good</span>
                         <span className="font-medium text-emerald-400">80–100 · Excellent</span>
                       </div>
-                      <p className="text-[0.7rem] text-base-content/60 leading-relaxed">
+                      <p className="text-[0.7rem] text-white/60 leading-relaxed">
                         Traditional credit bureaus use different maximum scores (for example 850 or 900). To compare
                         reports from many countries, we rescale each underlying score to a common 0–100 range and then
                         average them. The 100-point cap is an arbitrary normalization so this number should be treated
@@ -1025,50 +1031,50 @@ export default function PassportPage() {
 
                 {parsedResult && (
                   <>
-                    <div className="mt-6 p-5 bg-base-200/80 rounded-xl border border-base-300/50">
-                      <p className="text-sm font-semibold text-base-content/80 mb-3">Parsed profile</p>
-                      <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-                        <span className="text-base-content/60">Country</span>
-                        <span className="font-medium">{parsedResult.country}</span>
-                        <span className="text-base-content/60">Name</span>
-                        <span className="font-medium">{parsedResult.name}</span>
-                        <span className="text-base-content/60">Score</span>
-                        <span className="font-medium">{parsedResult.score}</span>
-                        <span className="text-base-content/60">History</span>
-                        <span className="font-medium">{parsedResult.ageMonths} months</span>
-                        <span className="text-base-content/60">Cards</span>
-                        <span className="font-medium">{parsedResult.cards}</span>
-                        <span className="text-base-content/60">Total accounts</span>
-                        <span className="font-medium">{parsedResult.totalAccounts}</span>
-                        <span className="text-base-content/60">Utilization</span>
-                        <span className="font-medium">{parsedResult.utilization}</span>
-                        <span className="text-base-content/60">Delinquencies</span>
-                        <span className="font-medium">{parsedResult.delinquencies}</span>
+                    <div className="mt-6 p-6 bg-white/5 backdrop-blur-lg rounded-2xl border border-white/20">
+                      <p className="text-lg font-bold text-white mb-4">Parsed profile</p>
+                      <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm mb-6">
+                        <span className="text-indigo-200">Country</span>
+                        <span className="font-medium text-white">{parsedResult.country}</span>
+                        <span className="text-indigo-200">Name</span>
+                        <span className="font-medium text-white">{parsedResult.name}</span>
+                        <span className="text-indigo-200">Score</span>
+                        <span className="font-medium text-white">{parsedResult.score}</span>
+                        <span className="text-indigo-200">History</span>
+                        <span className="font-medium text-white">{parsedResult.ageMonths} months</span>
+                        <span className="text-indigo-200">Cards</span>
+                        <span className="font-medium text-white">{parsedResult.cards}</span>
+                        <span className="text-indigo-200">Total accounts</span>
+                        <span className="font-medium text-white">{parsedResult.totalAccounts}</span>
+                        <span className="text-indigo-200">Utilization</span>
+                        <span className="font-medium text-white">{parsedResult.utilization}</span>
+                        <span className="text-indigo-200">Delinquencies</span>
+                        <span className="font-medium text-white">{parsedResult.delinquencies}</span>
                       </div>
                       {(parsedResult.analysis || parsedResult.markdownSummary) && (
-                        <div className="mt-5 space-y-3">
+                        <div className="mt-5 space-y-4">
                           {parsedResult.analysis && (
                             <div>
-                              <p className="text-sm font-semibold text-base-content/80 mb-1.5">AI analysis</p>
-                              <p className="text-sm text-base-content/80 whitespace-pre-line">
+                              <p className="text-sm font-semibold text-indigo-200 mb-2">AI analysis</p>
+                              <p className="text-sm text-white/90 whitespace-pre-line bg-white/5 rounded-xl p-4 border border-white/10">
                                 {parsedResult.analysis}
                               </p>
                             </div>
                           )}
                           {parsedResult.markdownSummary && (
                             <div>
-                              <p className="text-sm font-semibold text-base-content/80 mb-1.5">Credit report summary</p>
-                              <div className="bg-base-100 rounded-xl border border-base-300/60 p-3 text-sm">
+                              <p className="text-sm font-semibold text-indigo-200 mb-2">Credit report summary</p>
+                              <div className="bg-white/5 rounded-xl border border-white/10 p-4 text-sm text-white/90">
                                 <ReactMarkdown>{parsedResult.markdownSummary}</ReactMarkdown>
                               </div>
                             </div>
                           )}
                         </div>
                       )}
-                      <div className="flex flex-wrap gap-3 mt-5">
+                      <div className="flex flex-wrap gap-3 mt-6">
                         <button
                           type="button"
-                          className="btn btn-ghost rounded-xl"
+                          className="btn bg-white/10 hover:bg-white/20 text-white border-white/20 rounded-xl"
                           onClick={handleCancel}
                           disabled={isAddProfilePending || confirmLoading}
                         >
@@ -1076,7 +1082,7 @@ export default function PassportPage() {
                         </button>
                         <button
                           type="button"
-                          className="btn btn-primary rounded-xl shadow-md"
+                          className="btn bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl shadow-lg border-0"
                           onClick={handleConfirm}
                           disabled={isAddProfilePending || confirmLoading}
                         >
@@ -1091,12 +1097,12 @@ export default function PassportPage() {
 
             {/* Your profiles */}
             <section>
-              <div className="flex items-center justify-between gap-3 mb-4">
-                <h2 className="text-xl font-semibold text-base-content">Your credit profiles</h2>
+              <div className="flex items-center justify-between gap-3 mb-6">
+                <h2 className="text-2xl font-bold text-white">Your credit profiles</h2>
                 {profiles.length > 0 && (
                   <button
                     type="button"
-                    className="btn btn-ghost btn-sm rounded-xl border border-base-300/60 text-error hover:text-error hover:border-error/70"
+                    className="btn bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/30 btn-sm rounded-xl"
                     onClick={handleDeleteAllProfiles}
                     disabled={isDeleteProfilesPending || parseLoading || confirmLoading || isAddProfilePending}
                   >
@@ -1105,64 +1111,70 @@ export default function PassportPage() {
                 )}
               </div>
               {profiles.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-base-300 bg-base-100/50 py-10 px-6 text-center">
-                  <p className="text-base-content/60 text-sm">
+                <div className="rounded-3xl border-2 border-dashed border-white/20 bg-white/5 backdrop-blur-lg py-16 px-6 text-center">
+                  <div className="text-6xl mb-4">📊</div>
+                  <p className="text-white/70 text-lg">
                     No profiles yet. Add a credit report above and save it on-chain to see it here.
                   </p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {profiles.map((p, i) => {
                     const key = `${p.country}-${p.timestamp}-${i}`;
                     const isExpanded = expandedProfileKey === key;
+                    const scoreParts = p.score.split('/');
+                    const scoreNum = parseInt(scoreParts[0] || '0');
                     return (
                       <div
                         key={key}
-                        className="card bg-base-100 rounded-2xl shadow-md border border-base-300/40 overflow-hidden transition-all hover:shadow-lg"
+                        className="card bg-white/10 backdrop-blur-lg rounded-2xl shadow-lg border border-white/20 overflow-hidden transition-all hover:border-white/40 hover:shadow-xl"
                       >
                         <button
                           type="button"
-                          className="text-left w-full p-4 sm:p-5 flex items-center gap-3 min-w-0"
+                          className="text-left w-full p-5 flex items-center gap-4 min-w-0"
                           onClick={() => setExpandedProfileKey(isExpanded ? null : key)}
                         >
-                          <span className="font-medium text-base-content truncate min-w-0">
-                            {COUNTRY_FLAGS[p.country] ?? ""} {p.country} · {p.score}
-                          </span>
-                          <span className="text-base-content/50 text-sm shrink-0 hidden sm:inline">
-                            {p.ageMonths}mo · {p.cards} cards
-                          </span>
-                          <span className="text-base-content/40 text-sm shrink-0 ml-auto">
+                          <div className="text-3xl">{COUNTRY_FLAGS[p.country] ?? "🌍"}</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-bold text-white text-lg truncate">
+                              {p.country} · {p.score}
+                            </div>
+                            <div className="text-indigo-200 text-sm">
+                              {p.ageMonths}mo · {p.cards} cards · {p.totalAccounts} accounts
+                            </div>
+                          </div>
+                          <div className="text-white/40 text-sm shrink-0">
                             {isExpanded ? "▲ Less" : "▼ More"}
-                          </span>
+                          </div>
                         </button>
                         {isExpanded && (
-                          <div className="px-4 sm:px-5 pb-4 sm:pb-5 pt-0 border-t border-base-300/50">
-                            <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm pt-4">
-                              <span className="text-base-content/60">Country</span>
-                              <span className="font-medium">{p.country}</span>
-                              <span className="text-base-content/60">Name</span>
-                              <span className="font-medium">{p.name ?? "—"}</span>
-                              <span className="text-base-content/60">Score</span>
-                              <span className="font-medium">{p.score}</span>
-                              <span className="text-base-content/60">History</span>
-                              <span className="font-medium">{p.ageMonths} months</span>
-                              <span className="text-base-content/60">Cards</span>
-                              <span className="font-medium">{p.cards}</span>
-                              <span className="text-base-content/60">Total accounts</span>
-                              <span className="font-medium">{p.totalAccounts ?? "—"}</span>
-                              <span className="text-base-content/60">Utilization</span>
-                              <span className="font-medium">{p.utilization}</span>
-                              <span className="text-base-content/60">Delinquencies</span>
-                              <span className="font-medium">{p.delinquencies ?? "—"}</span>
+                          <div className="px-5 pb-5 pt-0 border-t border-white/10">
+                            <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm pt-5">
+                              <span className="text-indigo-200">Country</span>
+                              <span className="font-medium text-white">{p.country}</span>
+                              <span className="text-indigo-200">Name</span>
+                              <span className="font-medium text-white">{p.name ?? "—"}</span>
+                              <span className="text-indigo-200">Score</span>
+                              <span className="font-medium text-white">{p.score}</span>
+                              <span className="text-indigo-200">History</span>
+                              <span className="font-medium text-white">{p.ageMonths} months</span>
+                              <span className="text-indigo-200">Cards</span>
+                              <span className="font-medium text-white">{p.cards}</span>
+                              <span className="text-indigo-200">Total accounts</span>
+                              <span className="font-medium text-white">{p.totalAccounts ?? "—"}</span>
+                              <span className="text-indigo-200">Utilization</span>
+                              <span className="font-medium text-white">{p.utilization}</span>
+                              <span className="text-indigo-200">Delinquencies</span>
+                              <span className="font-medium text-white">{p.delinquencies ?? "—"}</span>
                               {p.ipfsCid && (
                                 <>
-                                  <span className="text-base-content/60">IPFS</span>
+                                  <span className="text-indigo-200">IPFS</span>
                                   <span className="font-medium break-all">
                                     <a
                                       href={`${PINATA_GATEWAY_BASE}${p.ipfsCid}`}
                                       target="_blank"
                                       rel="noreferrer"
-                                      className="link link-primary"
+                                      className="text-indigo-300 hover:text-indigo-200 underline"
                                     >
                                       {p.ipfsCid}
                                     </a>
@@ -1181,27 +1193,27 @@ export default function PassportPage() {
 
             {/* Developer: Gemini debug (collapsible) */}
             <details
-              className="group card bg-base-100/60 rounded-2xl border border-base-300/40 overflow-hidden [&::-webkit-details-marker]:hidden"
+              className="group card bg-white/5 backdrop-blur-lg rounded-2xl border border-white/20 overflow-hidden [&::-webkit-details-marker]:hidden"
               open={debugOpen}
               onToggle={e => setDebugOpen((e.target as HTMLDetailsElement).open)}
             >
-              <summary className="list-none cursor-pointer p-4 sm:p-5 font-medium text-base-content/80 hover:text-base-content [&::-webkit-details-marker]:hidden">
+              <summary className="list-none cursor-pointer p-4 sm:p-5 font-medium text-white/80 hover:text-white [&::-webkit-details-marker]:hidden">
                 <span className="flex items-center gap-2">
                   Developer · Gemini debug
-                  <span className="text-base-content/40 text-sm font-normal">(custom prompt)</span>
+                  <span className="text-white/40 text-sm font-normal">(custom prompt)</span>
                 </span>
               </summary>
               <div className="px-4 sm:px-5 pb-4 sm:pb-5 pt-0 space-y-3">
                 <input
                   type="text"
-                  className="input input-bordered w-full rounded-xl"
+                  className="input bg-white/10 border-white/20 text-white placeholder-white/40 w-full rounded-xl"
                   placeholder="e.g. Explain how AI works in a few words"
                   value={geminiDebugPrompt}
                   onChange={e => setGeminiDebugPrompt(e.target.value)}
                 />
                 <button
                   type="button"
-                  className="btn btn-secondary btn-sm rounded-xl"
+                  className="btn bg-indigo-600 hover:bg-indigo-700 text-white btn-sm rounded-xl border-0"
                   onClick={handleGeminiDebug}
                   disabled={geminiLoading}
                 >
@@ -1210,7 +1222,7 @@ export default function PassportPage() {
                 <div className="flex flex-wrap gap-2 pt-1">
                   <button
                     type="button"
-                    className="btn btn-outline btn-xs rounded-xl"
+                    className="btn bg-white/10 hover:bg-white/20 text-white border-white/20 btn-xs rounded-xl"
                     onClick={async () => {
                       try {
                         await navigator.clipboard.writeText(SAMPLE_CANADA_REPORT);
@@ -1224,7 +1236,7 @@ export default function PassportPage() {
                   </button>
                   <button
                     type="button"
-                    className="btn btn-outline btn-xs rounded-xl"
+                    className="btn bg-white/10 hover:bg-white/20 text-white border-white/20 btn-xs rounded-xl"
                     onClick={async () => {
                       try {
                         await navigator.clipboard.writeText(SAMPLE_US_REPORT);
@@ -1238,7 +1250,7 @@ export default function PassportPage() {
                   </button>
                 </div>
                 {geminiResult != null && (
-                  <pre className="p-4 bg-base-200 rounded-xl text-sm overflow-auto whitespace-pre-wrap border border-base-300/50">
+                  <pre className="p-4 bg-white/5 rounded-xl text-sm overflow-auto whitespace-pre-wrap border border-white/10 text-white/90">
                     {geminiResult}
                   </pre>
                 )}

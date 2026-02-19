@@ -218,38 +218,49 @@ const AdminApplicationCard: React.FC<CardProps> = ({ applicant, disabled, onDeci
     return Number(raw ?? 0n);
   }, [application]);
 
-  const latestProfile = useMemo(() => {
-    if (!creditProfiles) return null;
-    // Handle both array and object formats
+  const [selectedProfileIndex, setSelectedProfileIndex] = useState<number>(0);
+
+  // Parse all profiles from blockchain
+  const allProfiles = useMemo(() => {
+    if (!creditProfiles) return [];
+    
+    const profiles: any[] = [];
     if (Array.isArray(creditProfiles)) {
-      if (creditProfiles.length === 0) return null;
-      const last = creditProfiles[creditProfiles.length - 1];
-      // If it's an array of arrays (tuple format), return as-is
-      return Array.isArray(last) ? last : last;
+      creditProfiles.forEach((profile: any) => {
+        if (Array.isArray(profile)) {
+          // Tuple format: [country, name, score, ageMonths, cards, totalAccounts, utilization, delinquencies, ipfsCid, timestamp]
+          profiles.push({
+            country: profile[0],
+            name: profile[1],
+            score: profile[2],
+            ageMonths: profile[3],
+            cards: profile[4],
+            totalAccounts: profile[5],
+            utilization: profile[6],
+            delinquencies: profile[7],
+            ipfsCid: profile[8],
+            timestamp: profile[9],
+          });
+        } else if (typeof profile === 'object') {
+          profiles.push(profile);
+        }
+      });
     }
-    // If it's an object array
-    if (typeof creditProfiles === 'object' && 'length' in creditProfiles) {
-      const arr = creditProfiles as any[];
-      return arr.length > 0 ? arr[arr.length - 1] : null;
-    }
-    return null;
+    return profiles;
   }, [creditProfiles]);
 
+  const selectedProfile = allProfiles[selectedProfileIndex] || null;
+  const latestProfile = allProfiles.length > 0 ? allProfiles[allProfiles.length - 1] : null;
+
   const creditScore = useMemo(() => {
-    if (!latestProfile) return null;
-    let scoreStr: string | undefined;
-    
-    if (Array.isArray(latestProfile)) {
-      // Tuple format: [country, name, score, ageMonths, cards, totalAccounts, utilization, delinquencies, ipfsCid, timestamp]
-      scoreStr = latestProfile[2]?.toString();
-    } else if (typeof latestProfile === 'object') {
-      scoreStr = (latestProfile as any).score?.toString();
-    }
-    
+    if (!selectedProfile) return null;
+    const scoreStr = selectedProfile.score?.toString();
     if (!scoreStr) return null;
-    const scoreNum = parseInt(scoreStr);
+    // Handle "740/850" format
+    const parts = scoreStr.split('/');
+    const scoreNum = parseInt(parts[0] || scoreStr);
     return isNaN(scoreNum) ? null : scoreNum;
-  }, [latestProfile]);
+  }, [selectedProfile]);
 
   const createdAt = useMemo(() => {
     if (!application) return null;
@@ -270,7 +281,7 @@ const AdminApplicationCard: React.FC<CardProps> = ({ applicant, disabled, onDeci
               <Address address={applicant} />
               {latestProfile && (
                 <div className="text-white/60 text-sm mt-1">
-                  {Array.isArray(latestProfile) ? latestProfile[1] : (latestProfile as any).name || "Unknown"}
+                  {latestProfile.name || "Unknown"}
                 </div>
               )}
             </div>
@@ -282,42 +293,89 @@ const AdminApplicationCard: React.FC<CardProps> = ({ applicant, disabled, onDeci
             </div>
           </div>
 
-          {/* Credit Score Display */}
-          {creditScore !== null && (
+          {/* Credit Profiles Dropdown */}
+          {allProfiles.length > 0 && (
             <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-indigo-200 text-sm">Credit Score</div>
-                <div className="text-2xl font-bold text-white">{creditScore}</div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-indigo-200 text-sm font-semibold">Credit Profiles</div>
+                <div className="text-white/60 text-xs">{allProfiles.length} profile{allProfiles.length !== 1 ? 's' : ''}</div>
               </div>
-              <div className="w-full bg-gray-700/50 rounded-full h-2 overflow-hidden">
-                <div
-                  className={`h-full transition-all duration-1000 ${
-                    creditScore >= 750
-                      ? "bg-gradient-to-r from-green-400 to-emerald-600"
-                      : creditScore >= 700
-                      ? "bg-gradient-to-r from-yellow-400 to-orange-500"
-                      : "bg-gradient-to-r from-red-400 to-pink-600"
-                  }`}
-                  style={{ width: `${Math.min((creditScore / 850) * 100, 100)}%` }}
-                />
-              </div>
-              {latestProfile && (
-                <div className="text-white/60 text-xs mt-2 flex gap-4 flex-wrap">
-                  {Array.isArray(latestProfile) ? (
-                    <>
-                      {latestProfile[4] && <span>{latestProfile[4].toString()} cards</span>}
-                      {latestProfile[5] && <span>{latestProfile[5].toString()} accounts</span>}
-                      {latestProfile[6] && <span>Utilization: {latestProfile[6]}</span>}
-                    </>
-                  ) : (
-                    <>
-                      {(latestProfile as any).cards && <span>{(latestProfile as any).cards.toString()} cards</span>}
-                      {(latestProfile as any).totalAccounts && <span>{(latestProfile as any).totalAccounts.toString()} accounts</span>}
-                      {(latestProfile as any).utilization && <span>Utilization: {(latestProfile as any).utilization}</span>}
-                    </>
-                  )}
-                </div>
+              {allProfiles.length > 1 && (
+                <select
+                  value={selectedProfileIndex}
+                  onChange={(e) => setSelectedProfileIndex(Number(e.target.value))}
+                  className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  {allProfiles.map((profile, idx) => (
+                    <option key={idx} value={idx} className="bg-slate-800">
+                      {profile.country || 'Unknown'} • {profile.score || 'N/A'} • {profile.name || 'Unknown'}
+                    </option>
+                  ))}
+                </select>
               )}
+              
+              {/* Selected Profile Details */}
+              {selectedProfile && (
+                <>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-indigo-200 text-sm">Credit Score</div>
+                    <div className="text-2xl font-bold text-white">
+                      {creditScore !== null ? creditScore : selectedProfile.score || 'N/A'}
+                    </div>
+                  </div>
+                  {creditScore !== null && (
+                    <div className="w-full bg-gray-700/50 rounded-full h-2 overflow-hidden mb-3">
+                      <div
+                        className={`h-full transition-all duration-1000 ${
+                          creditScore >= 750
+                            ? "bg-gradient-to-r from-green-400 to-emerald-600"
+                            : creditScore >= 700
+                            ? "bg-gradient-to-r from-yellow-400 to-orange-500"
+                            : "bg-gradient-to-r from-red-400 to-pink-600"
+                        }`}
+                        style={{ width: `${Math.min((creditScore / 850) * 100, 100)}%` }}
+                      />
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 gap-2 text-xs text-white/60">
+                    <div>
+                      <span className="text-indigo-200">Country:</span> {selectedProfile.country || 'N/A'}
+                    </div>
+                    <div>
+                      <span className="text-indigo-200">Name:</span> {selectedProfile.name || 'N/A'}
+                    </div>
+                    <div>
+                      <span className="text-indigo-200">Cards:</span> {selectedProfile.cards?.toString() || '0'}
+                    </div>
+                    <div>
+                      <span className="text-indigo-200">Accounts:</span> {selectedProfile.totalAccounts?.toString() || '0'}
+                    </div>
+                    <div>
+                      <span className="text-indigo-200">Utilization:</span> {selectedProfile.utilization || 'N/A'}
+                    </div>
+                    <div>
+                      <span className="text-indigo-200">Delinquencies:</span> {selectedProfile.delinquencies?.toString() || '0'}
+                    </div>
+                    <div>
+                      <span className="text-indigo-200">History:</span> {selectedProfile.ageMonths?.toString() || '0'} months
+                    </div>
+                    {selectedProfile.timestamp && (
+                      <div>
+                        <span className="text-indigo-200">Added:</span>{' '}
+                        {new Date(Number(selectedProfile.timestamp) * 1000).toLocaleDateString()}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+          
+          {/* No Credit Profile Message */}
+          {allProfiles.length === 0 && (
+            <div className="bg-white/5 rounded-xl p-4 border border-white/10 text-center">
+              <div className="text-white/60 text-sm">No credit profiles found</div>
+              <div className="text-white/40 text-xs mt-1">This applicant hasn't added any credit profiles yet</div>
             </div>
           )}
 
