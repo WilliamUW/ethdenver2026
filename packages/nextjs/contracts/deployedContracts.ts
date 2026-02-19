@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   31337: {
     CreditPassport: {
-      address: "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      address: "0x0165878A594ca255338adfa4d48449f69242Eb8F",
       abi: [
         {
           anonymous: false,
@@ -26,6 +26,25 @@ const deployedContracts = {
             },
           ],
           name: "ProfileAdded",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "user",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "previousCount",
+              type: "uint256",
+            },
+          ],
+          name: "ProfilesCleared",
           type: "event",
         },
         {
@@ -79,6 +98,78 @@ const deployedContracts = {
           name: "addProfile",
           outputs: [],
           stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "deleteMyProfiles",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "getMyProfiles",
+          outputs: [
+            {
+              components: [
+                {
+                  internalType: "string",
+                  name: "country",
+                  type: "string",
+                },
+                {
+                  internalType: "string",
+                  name: "name",
+                  type: "string",
+                },
+                {
+                  internalType: "string",
+                  name: "score",
+                  type: "string",
+                },
+                {
+                  internalType: "uint256",
+                  name: "ageMonths",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "cards",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "totalAccounts",
+                  type: "uint256",
+                },
+                {
+                  internalType: "string",
+                  name: "utilization",
+                  type: "string",
+                },
+                {
+                  internalType: "uint256",
+                  name: "delinquencies",
+                  type: "uint256",
+                },
+                {
+                  internalType: "string",
+                  name: "ipfsCid",
+                  type: "string",
+                },
+                {
+                  internalType: "uint256",
+                  name: "timestamp",
+                  type: "uint256",
+                },
+              ],
+              internalType: "struct CreditPassport.CreditProfile[]",
+              name: "",
+              type: "tuple[]",
+            },
+          ],
+          stateMutability: "view",
           type: "function",
         },
         {
@@ -242,7 +333,7 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 12,
+      deployedOnBlock: 24,
     },
     YourContract: {
       address: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
