@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   31337: {
     CreditPassport: {
-      address: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+      address: "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
       abi: [
         {
           anonymous: false,
@@ -70,6 +70,11 @@ const deployedContracts = {
               name: "delinquencies",
               type: "uint256",
             },
+            {
+              internalType: "string",
+              name: "ipfsCid",
+              type: "string",
+            },
           ],
           name: "addProfile",
           outputs: [],
@@ -130,6 +135,11 @@ const deployedContracts = {
               internalType: "uint256",
               name: "delinquencies",
               type: "uint256",
+            },
+            {
+              internalType: "string",
+              name: "ipfsCid",
+              type: "string",
             },
             {
               internalType: "uint256",
@@ -212,6 +222,11 @@ const deployedContracts = {
                   type: "uint256",
                 },
                 {
+                  internalType: "string",
+                  name: "ipfsCid",
+                  type: "string",
+                },
+                {
                   internalType: "uint256",
                   name: "timestamp",
                   type: "uint256",
@@ -227,10 +242,10 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 7,
+      deployedOnBlock: 12,
     },
     YourContract: {
-      address: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+      address: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
       abi: [
         {
           inputs: [
@@ -371,7 +386,7 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 1,
+      deployedOnBlock: 10,
     },
   },
 } as const;

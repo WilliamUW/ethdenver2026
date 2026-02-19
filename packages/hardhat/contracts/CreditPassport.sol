@@ -15,6 +15,7 @@ contract CreditPassport {
         uint256 totalAccounts;
         string utilization;
         uint256 delinquencies;
+        string ipfsCid;
         uint256 timestamp;
     }
 
@@ -30,7 +31,8 @@ contract CreditPassport {
         uint256 cards,
         uint256 totalAccounts,
         string calldata utilization,
-        uint256 delinquencies
+        uint256 delinquencies,
+        string calldata ipfsCid
     ) external {
         _profiles[msg.sender].push(
             CreditProfile({
@@ -42,6 +44,7 @@ contract CreditPassport {
                 totalAccounts: totalAccounts,
                 utilization: utilization,
                 delinquencies: delinquencies,
+                ipfsCid: ipfsCid,
                 timestamp: block.timestamp
             })
         );
@@ -61,6 +64,7 @@ contract CreditPassport {
         uint256 totalAccounts,
         string memory utilization,
         uint256 delinquencies,
+        string memory ipfsCid,
         uint256 timestamp
     ) {
         CreditProfile storage p = _profiles[user][index];
@@ -73,6 +77,7 @@ contract CreditPassport {
             p.totalAccounts,
             p.utilization,
             p.delinquencies,
+            p.ipfsCid,
             p.timestamp
         );
     }
