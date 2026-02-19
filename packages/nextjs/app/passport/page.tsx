@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Address } from "@scaffold-ui/components";
 import toast from "react-hot-toast";
@@ -28,6 +29,8 @@ type ParsedProfile = {
   totalAccounts: number;
   utilization: string;
   delinquencies: number;
+  analysis: string;
+  markdownSummary: string;
 };
 
 type SavedProfile = {
@@ -42,6 +45,7 @@ type SavedProfile = {
   utilization: string;
   delinquencies: number;
   timestamp: number;
+  ipfsCid?: string;
 };
 
 const COUNTRY_FLAGS: Record<string, string> = {
@@ -63,6 +67,12 @@ const EXTRACTION_PROMPT = `You are a credit report parser. Extract the following
 - totalAccounts (number): total number of credit accounts (cards, loans, etc.)
 - utilization (string): credit utilization as percentage, e.g. "28%"
 - delinquencies (number): number of late payments or delinquencies, 0 if none/none mentioned
+- analysis (string): an AI analysis of the user's credit score and profile, focusing on strengths, weaknesses, risk factors, and concrete suggestions for improvement. Use clear, plain language.
+- markdownSummary (string): a well-structured Markdown summary of the credit report with headings and bullet points. Include sections like "Overview", "Key Metrics", "Risk Factors", and "Recommendations".
+
+PRIVACY REQUIREMENTS:
+- Do NOT include any personally identifying information beyond the account holder's name.
+- Never include addresses, dates of birth, social security numbers (SSN), social insurance numbers (SIN), tax IDs, account numbers, or similar sensitive identifiers.
 
 If a value cannot be found, use null for that key. Return only the JSON object.`;
 
@@ -125,6 +135,8 @@ function parseExtractionPayload(jsonStr: string, country: string): ParsedProfile
     totalAccounts: num(raw.totalAccounts),
     utilization: str(raw.utilization, "0%"),
     delinquencies: num(raw.delinquencies),
+    analysis: str(raw.analysis, ""),
+    markdownSummary: str(raw.markdownSummary, ""),
   };
 }
 
@@ -173,6 +185,7 @@ type ContractProfile = {
   totalAccounts: bigint;
   utilization: string;
   delinquencies: bigint;
+  ipfsCid?: string;
   timestamp: bigint;
 };
 
@@ -226,6 +239,44 @@ export default function PassportPage() {
   const [parseError, setParseError] = useState<string | null>(null);
   const [expandedProfileKey, setExpandedProfileKey] = useState<string | null>(null);
   const [debugOpen, setDebugOpen] = useState(false);
+  const [confirmLoading, setConfirmLoading] = useState(false);
+
+  const uploadProfileToPinata = async (profile: ParsedProfile & { address?: string | null }) => {
+    const payload = {
+      country: profile.country,
+      name: profile.name,
+      score: profile.score,
+      ageMonths: profile.ageMonths,
+      cards: profile.cards,
+      totalAccounts: profile.totalAccounts,
+      utilization: profile.utilization,
+      delinquencies: profile.delinquencies,
+      analysis: profile.analysis,
+      markdownSummary: profile.markdownSummary,
+      userAddress: profile.address ?? undefined,
+      createdAt: new Date().toISOString(),
+    };
+
+    const res = await fetch("/api/pinata", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Pinata upload failed: ${text}`);
+    }
+
+    const data = (await res.json()) as { cid?: string };
+    if (!data.cid) {
+      throw new Error("Pinata upload response missing cid");
+    }
+
+    return data.cid;
+  };
 
   const handleGeminiDebug = async () => {
     const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
@@ -281,7 +332,9 @@ export default function PassportPage() {
   const handleConfirm = async () => {
     if (!parsedResult) return;
     try {
-      await addProfileToContract({
+      setConfirmLoading(true);
+      const cid = await uploadProfileToPinata({ ...parsedResult, address });
+      await (addProfileToContract as any)({
         functionName: "addProfile",
         args: [
           parsedResult.country,
@@ -292,12 +345,16 @@ export default function PassportPage() {
           BigInt(parsedResult.totalAccounts),
           parsedResult.utilization,
           BigInt(parsedResult.delinquencies),
+          cid,
         ],
       });
       toast.success("Credit profile saved on-chain.");
       handleCancel();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to save profile");
+    }
+    finally {
+      setConfirmLoading(false);
     }
   };
 
@@ -435,12 +492,36 @@ export default function PassportPage() {
                         <span className="text-base-content/60">Delinquencies</span>
                         <span className="font-medium">{parsedResult.delinquencies}</span>
                       </div>
+                      {(parsedResult.analysis || parsedResult.markdownSummary) && (
+                        <div className="mt-5 space-y-3">
+                          {parsedResult.analysis && (
+                            <div>
+                              <p className="text-sm font-semibold text-base-content/80 mb-1.5">
+                                AI analysis
+                              </p>
+                              <p className="text-sm text-base-content/80 whitespace-pre-line">
+                                {parsedResult.analysis}
+                              </p>
+                            </div>
+                          )}
+                          {parsedResult.markdownSummary && (
+                            <div>
+                              <p className="text-sm font-semibold text-base-content/80 mb-1.5">
+                                Credit report summary
+                              </p>
+                              <div className="bg-base-100 rounded-xl border border-base-300/60 p-3 text-sm">
+                                <ReactMarkdown>{parsedResult.markdownSummary}</ReactMarkdown>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                       <div className="flex flex-wrap gap-3 mt-5">
                         <button
                           type="button"
                           className="btn btn-ghost rounded-xl"
                           onClick={handleCancel}
-                          disabled={isAddProfilePending}
+                          disabled={isAddProfilePending || confirmLoading}
                         >
                           Cancel
                         </button>
@@ -448,9 +529,9 @@ export default function PassportPage() {
                           type="button"
                           className="btn btn-primary rounded-xl shadow-md"
                           onClick={handleConfirm}
-                          disabled={isAddProfilePending}
+                          disabled={isAddProfilePending || confirmLoading}
                         >
-                          {isAddProfilePending ? "Saving…" : "Confirm & save on-chain"}
+                          {isAddProfilePending || confirmLoading ? "Saving…" : "Confirm & save on-chain"}
                         </button>
                       </div>
                     </div>
