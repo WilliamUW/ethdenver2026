@@ -82,31 +82,32 @@ async function callGemini(
   options?: { responseJson?: boolean },
 ): Promise<string> {
   const body: {
-    contents: Array<{ parts: Array<{ text: string }> }>;
-    generationConfig?: { temperature: number; responseMimeType?: string };
+    model: string;
+    messages: Array<{ role: "user"; content: string }>;
+    response_format?: { type: "json_object" | "text" };
   } = {
-    contents: [{ parts: [{ text: userPrompt }] }],
-    generationConfig: { temperature: options?.responseJson ? 0.1 : 0.7 },
+    model: "gpt-5-mini",
+    messages: [{ role: "user", content: userPrompt }],
   };
-  if (options?.responseJson) body.generationConfig!.responseMimeType = "application/json";
 
-  const res = await fetch(
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": apiKey,
-      },
-      body: JSON.stringify(body),
+  if (options?.responseJson) {
+    body.response_format = { type: "json_object" };
+  }
+
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
     },
-  );
+    body: JSON.stringify(body),
+  });
   const raw = await res.text();
-  if (!res.ok) throw new Error(`Gemini ${res.status}: ${raw}`);
+  if (!res.ok) throw new Error(`OpenAI ${res.status}: ${raw}`);
   const data = JSON.parse(raw) as {
-    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    choices?: Array<{ message?: { content?: string } }>;
   };
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? raw;
+  const text = data.choices?.[0]?.message?.content ?? raw;
   return text;
 }
 
