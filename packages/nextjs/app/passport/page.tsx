@@ -547,6 +547,13 @@ function computeGlobalScore(profiles: SavedProfile[]): number | null {
   return Math.round(normalizedSum / profiles.length);
 }
 
+function clampScore(score: number | null): number {
+  if (score === null || Number.isNaN(score)) return 0;
+  if (score < 0) return 0;
+  if (score > 100) return 100;
+  return score;
+}
+
 type ContractProfile = {
   country: string;
   name: string;
@@ -602,6 +609,7 @@ export default function PassportPage() {
   }, [contractProfiles]);
 
   const globalScore = useMemo(() => computeGlobalScore(profiles), [profiles]);
+  const clampedGlobalScore = useMemo(() => clampScore(globalScore), [globalScore]);
 
   const { writeContractAsync: addProfileToContract, isPending: isAddProfilePending } = useScaffoldWriteContract({
     contractName: "CreditPassport",
@@ -889,17 +897,51 @@ export default function PassportPage() {
                     Your global normalized score (0–100)
                   </p>
                   <div className="mt-4 flex flex-col sm:flex-row items-center gap-6">
-                    <div className="relative w-28 h-28 sm:w-32 sm:h-32">
-                      <div
-                        className="absolute inset-0 rounded-full"
-                        style={{
-                          background:
-                            "conic-gradient(#f97373 0deg, #f97373 120deg, #facc15 120deg, #facc15 210deg, #22c55e 210deg, #22c55e 360deg)",
-                        }}
-                      />
-                      <div className="absolute inset-2 rounded-full bg-base-100 flex flex-col items-center justify-center text-base-content">
-                        <span className="text-3xl font-bold">{globalScore}</span>
-                        <span className="text-xs text-base-content/60">out of 100</span>
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="relative w-32 h-32 sm:w-40 sm:h-40">
+                        <div
+                          className="absolute inset-0 rounded-full"
+                          style={{
+                            background:
+                              "conic-gradient(#22c55e 0deg, #22c55e 72deg, #a3e635 72deg, #a3e635 144deg, #facc15 144deg, #facc15 216deg, #f97316 216deg, #f97316 288deg, #ef4444 288deg, #ef4444 360deg)",
+                          }}
+                        />
+                        <div className="absolute inset-3 rounded-full bg-base-100" />
+                        <div
+                          className="absolute inset-0 flex items-center justify-center"
+                          style={{
+                            transform: `rotate(${(clampedGlobalScore / 100) * 360 - 90}deg)`,
+                          }}
+                        >
+                          <div className="w-0.5 sm:w-[3px] h-12 sm:h-16 bg-base-content rounded-full origin-bottom translate-y-2" />
+                          <div className="absolute w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-base-content" />
+                        </div>
+                      </div>
+                      <div className="flex justify-between w-full max-w-xs px-1 text-[0.65rem] text-base-content/70">
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="w-2.5 h-2.5 rounded-full bg-error" />
+                          <span>0–19</span>
+                        </div>
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="w-2.5 h-2.5 rounded-full bg-orange-400" />
+                          <span>20–39</span>
+                        </div>
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="w-2.5 h-2.5 rounded-full bg-yellow-300" />
+                          <span>40–59</span>
+                        </div>
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="w-2.5 h-2.5 rounded-full bg-lime-300" />
+                          <span>60–79</span>
+                        </div>
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
+                          <span>80–100</span>
+                        </div>
+                      </div>
+                      <div className="mt-1 flex flex-col items-center text-base-content">
+                        <span className="text-2xl sm:text-3xl font-bold">{globalScore}</span>
+                        <span className="text-[0.65rem] sm:text-xs text-base-content/60">out of 100</span>
                       </div>
                     </div>
                     <div className="flex-1 space-y-2 text-sm">
