@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import ReactMarkdown from "react-markdown";
 import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 import { Address } from "@scaffold-ui/components";
 import toast from "react-hot-toast";
+import ReactMarkdown from "react-markdown";
 import { hardhat } from "viem/chains";
 import { useAccount } from "wagmi";
 import { useScaffoldReadContract, useScaffoldWriteContract, useTargetNetwork } from "~~/hooks/scaffold-eth";
@@ -61,6 +61,378 @@ const COUNTRY_FLAGS: Record<string, string> = {
 
 const PINATA_GATEWAY_BASE = "https://brown-real-puma-604.mypinata.cloud/ipfs/";
 
+// Sample report templates are provided via public env vars so they can be updated without code changes.
+// Set these in `.env.local`, for example:
+// NEXT_PUBLIC_SAMPLE_CANADA_REPORT="...full Canada report text..."
+// NEXT_PUBLIC_SAMPLE_US_REPORT="...full US report text..."
+const SAMPLE_CANADA_REPORT = `17/02/2026
+16/07/2020
+$0
+Open
+$0
+$4,000
+$0
+Paid as agreed and up to date.
+Revolving - open/end account
+January 22, 2026
+September 3, 2023
+Your Equifax® Credit Report and Score
+Credit Score Summary
+740Date Credit Report Last Pulled:
+File Creation Date:
+Personal Information
+Name: Chen Ye Wang
+Date of Birth: 2002-05-XX
+Address: 19 Glen Springs
+Drive T oronto,
+Ontario M1W
+1X7
+Trades/Accounts
+Accounts refer to any open or closed accounts that appear on your credit report such as credit cards, instalment loans,
+mortgages and mobile phone accounts.
+REVOLVING
+ROGERS BANK
+Reported: January 26, 2026
+Overview
+Balance
+High Credit
+Past Due Amount
+Account Details
+Payment Details
+Type
+Last Activity
+Open Date
+$0
+Open
+$0
+$3,500
+$0
+Paid as agreed and up to date.
+Revolving - open/end account
+January 12, 2026
+April 22, 2021
+$241
+Open
+$241
+$2,500
+$0
+Paid as agreed and up to date.
+Revolving - open/end account
+December 21, 2025
+March 7, 2024
+$0
+Open
+$0
+$20,000
+$0
+Paid as agreed and up to date.
+Revolving - open/end account
+January 7, 2025
+September 10, 2024
+TD CREDIT CARDS
+Reported: January 20, 2026
+Overview
+Balance
+High Credit
+Past Due Amount
+Account Details
+Payment Details
+Type
+Last Activity
+Open Date
+CIBC CARD SERVICES
+Reported: February 7, 2026
+Overview
+Balance
+High Credit
+Past Due Amount
+Account Details
+Payment Details
+Type
+Last Activity
+Open Date
+AMERICAN EXPRESS
+Reported: February 10, 2026
+Overview
+Balance
+High Credit
+Past Due Amount
+Account Details
+Payment Details
+Type
+Last Activity
+Open Date
+$0
+Open
+$0
+$2,800
+$0
+Paid as agreed and up to date.
+Revolving - open/end account
+September 10, 2024
+July 16, 2020
+$0
+Open
+$0
+$9,000
+$0
+Paid as agreed and up to date.
+Revolving - open/end account
+October 4, 2023
+September 14, 2023
+$0
+Closed
+$0
+$2,500
+$0
+Paid as agreed and up to date.
+Revolving - open/end account
+January 3, 2022
+December 15, 2021
+BMO CREDIT CARD
+Reported: February 12, 2026
+Overview
+Balance
+High Credit
+Past Due Amount
+Account Details
+Payment Details
+Type
+Last Activity
+Open Date
+TANGERINE
+Reported: January 28, 2026
+Overview
+Balance
+High Credit
+Past Due Amount
+Account Details
+Payment Details
+Type
+Last Activity
+Open Date
+PRESIDENTS CHOICE MC
+Reported: August 8, 2022
+Overview
+Balance
+High Credit
+Past Due Amount
+Account Details
+Payment Details
+Type
+Last Activity
+Open Date
+$0
+Open
+$0
+$2,500
+$0
+Paid as agreed and up to date.
+Revolving - open/end account
+August 1, 2024
+$27,279
+Open
+$27,279
+$30,220
+$0
+Paid as agreed and up to date.
+Instalment - fixed number of payments
+February 2, 2026
+September 8, 2020
+$0
+Closed
+$0
+$16,280
+$0
+Paid as agreed and up to date.
+Instalment - fixed number of payments
+March 12, 2025
+March 17, 2021
+MBNA
+Reported: January 23, 2026
+Overview
+Balance
+High Credit
+Past Due Amount
+Account Details
+Payment Details
+Type
+Last Activity
+Open Date
+INSTALMENT
+CDA STUDENT LOANS PR
+Reported: February 4, 2026
+Overview
+Balance
+High Credit
+Past Due Amount
+Account Details
+Payment Details
+Type
+Last Activity
+Open Date
+TOYOTA CREDIT CANADA
+Reported: January 30, 2026
+Overview
+Balance
+High Credit
+Past Due Amount
+Account Details
+Payment Details
+Type
+Last Activity
+Open Date
+$0
+Closed
+$0
+$53,964
+$0
+Paid as agreed and up to date.
+Instalment - fixed number of payments
+April 18, 2024
+January 16, 2023
+$0
+Closed
+$0
+$0
+$0
+Paid as agreed and up to date.
+Open Account - 30, 60 or 90 day account
+October 10, 2024
+November 26, 2022
+$0
+Closed
+$0
+$0
+$0
+Paid as agreed and up to date.
+Open Account - 30, 60 or 90 day account
+December 8, 2023
+December 23, 2021
+TDCT
+Reported: April 30, 2024
+Overview
+Balance
+High Credit
+Past Due Amount
+Account Details
+Payment Details
+Type
+Last Activity
+Open Date
+OPEN
+FIDO
+Reported: October 29, 2024
+Overview
+Balance
+High Credit
+Past Due Amount
+Account Details
+Payment Details
+Type
+Last Activity
+Open Date
+FIDO
+Reported: December 27, 2023
+Overview
+Balance
+High Credit
+Past Due Amount
+Account Details
+Payment Details
+Type
+Last Activity
+Open Date
+MORTGAGE
+There are no mortgage accounts listed on your credit report.
+Credit Inquiries
+Credit inquiries are requests to check your credit.
+"Hard inquiries" occur when a potential lender is reviewing your credit
+because you've applied for credit with them, and may affect your credit score.
+"Soft inquiries" occur when you're checking
+your own credit file and/or score (such as checking your score with Borrowell), credit checks made by businesses to offer
+you a quote, or inquiries made by businesses where you already have an account.
+"Soft inquiries" do not affect your credit
+score.
+LOCAL INQUIRIES
+FREEDOM MOBILE
+Reported: December 18 2024
+FREEDOM MOBILE
+Reported: October 23 2024
+FOREIGN INQUIRIES
+Reported: November 16 2023
+Collections
+Any accounts that have been sent to collections, whether the balance(s) have been paid or unpaid. Be careful – when an
+account gets sent to collections it can have a big impact on your credit score.
+COLLECTIONS
+There are no collections listed on your credit report.
+Legal Items
+Any public records on your credit report. This may include items such as a court judgment.
+LEGAL ITEMS
+There are no legal items listed on your credit report.
+Bankruptcies
+If you have ever filed for bankruptcy or consumer proposal it would appear here.
+BANKRUPTCIES
+There are no bankruptcies listed on your credit report.
+Equifax Canada Co. (“Equifax”) is a registered Canadian credit bureau that maintains your Canadian consumer
+credit file, which has been used by Borrowell Inc. as permitted by you, to provide you with your educational
+Equifax Consumer Credit Report. The Equifax Consumer Credit Report provided here is current as of the date
+indicated on your report. For a full copy of your up to date Equifax credit file, please contact Equifax directly.
+Equifax® and the Powered by Equifax Logo are registered trademarks of Equifax Canada Co. used under
+License.`;
+const SAMPLE_US_REPORT = `You have good credit.
+Vantage 3.0® credit score
+With a score between 720–780, y
+ou may qualify for credit cards and loans at competitive rates.
+Refer to get $15 in rewards points
+Get the SoFi app to redeem your rewards and get
+alerts on your credit score.
+Credit factors
+Credit utilization 0%
+Payment history 100%
+Average age of credit 11 mos
+Total accounts 9
+Inquiries 7
+Derogatory marks 0
+Score history
+Credit Score
+735
+Updated Feb 14
+300 600 657 719 780 850
+3M 6M 1Y
+Spot an error?
+If y
+ou see an error or want to dispute something on
+y
+our credit report, please contact TransUnion®
+Go to TransUnion®
+650
+700
+750
+800
+850
+735
+February
+14th, 2026
+Privacy & Security Terms of Use Disclaimers Licenses NMLS Access Eligibility Criteria
+SoFi's Insights tool offers users the ability to connect both SoFi accounts and external accounts using Plaid, Inc.
+'s service. When you use the service
+to connect an account, you authorize SoFi to obtain account information from any external accounts as set forth in SoFi's Terms of Use. SoFi assumes
+no responsibility for the timeliness, accuracy, deletion, non-delivery or failure to store any user data, loss of user data, communications, or
+personalization settings. You shall confirm the accuracy of Plaid data through sources independent of SoFi. The credit score provided to you is a
+VantageScore based on TransUnion (the "Processing Agent") data.
+Investment and Insurance Products:
+Not FDIC Insured Not Bank Guaranteed May Lose Value
+Brokerage and Active investing products offered through SoFi Securities LLC, member FINRA/SIPC.
+Automated Investing and Advisory services offered by SoFi Wealth LLC, an SEC-registered investment adviser.
+SoFi Checking and Savings is offered through SoFi Bank, N.A. Member FDIC.
+See disclaimers
+® ®
+© 2026 Social Finance, Inc.
+SSL Encrypted
+Equal Housing ORT"`;
+
+
 const EXTRACTION_PROMPT = `You are a credit report parser working for a conservative, regulated consumer lender. Read the credit report as a loan underwriter would and extract the following fields from the credit report text below. Return ONLY a valid JSON object with no other text, no markdown, no code fence. Use exactly these keys:
 - country (string): if the user's selection is "Auto" or missing, infer the country from the report content. Always map well-known lenders explicitly as follows: any report mentioning Sofi or SoFi should be treated as USA; any report mentioning Borrowell should be treated as Canada. For other cases, infer the country from issuer names, bureaus, and terminology when reasonably clear; otherwise use the country provided by the user, or null if none is given.
 - name (string): account holder name if present, else "Unknown"
@@ -70,7 +442,7 @@ const EXTRACTION_PROMPT = `You are a credit report parser working for a conserva
 - totalAccounts (number): total number of credit accounts (cards, loans, etc.)
 - utilization (string): credit utilization as percentage, e.g. "28%"
 - delinquencies (number): number of late payments or delinquencies, 0 if none/none mentioned
-- analysis (string): a SHORT AI analysis paragraph (3–5 sentences maximum) of the user's credit score and profile, focusing on the single most important strength, the single most important risk factor, and 2–3 concrete suggestions for improvement. Use clear, plain language and avoid lists or bullet points in this field.
+- analysis (string): a SHORT AI analysis paragraph (3–5 sentences maximum) that neutrally describes the user's overall creditworthiness. Focus on the main strengths and the primary risk factors (for example, high credit utilization, recent delinquencies, a very short credit history, or frequent new inquiries). Use clear, plain language, describe risks in concrete terms (for example, "the user's credit utilization may pose a concern"), and avoid lists, bullet points, advice, or recommendations for improvement in this field.
 - markdownSummary (string): a VERY DETAILED and BEAUTIFULLY FORMATTED Markdown summary of the credit report. Structure it with rich headings, subheadings, and visual variation. At minimum include sections like:
   - "# Overview" with key high-level bullets
   - "## Score & History" with bold labels and inline values
@@ -729,6 +1101,36 @@ export default function PassportPage() {
                 >
                   {geminiLoading ? "…" : "Send to Gemini"}
                 </button>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-xs rounded-xl"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(SAMPLE_CANADA_REPORT);
+                        toast.success("Copied Canada sample report to clipboard.");
+                      } catch {
+                        toast.error("Failed to copy Canada sample report.");
+                      }
+                    }}
+                  >
+                    Copy Canada report
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-xs rounded-xl"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(SAMPLE_US_REPORT);
+                        toast.success("Copied US sample report to clipboard.");
+                      } catch {
+                        toast.error("Failed to copy US sample report.");
+                      }
+                    }}
+                  >
+                    Copy US report
+                  </button>
+                </div>
                 {geminiResult != null && (
                   <pre className="p-4 bg-base-200 rounded-xl text-sm overflow-auto whitespace-pre-wrap border border-base-300/50">
                     {geminiResult}
