@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import ReactMarkdown from "react-markdown";
 import { hardhat } from "viem/chains";
 import { useAccount } from "wagmi";
+import { CreditDashboard } from "~~/components/CreditDashboard";
 import { useScaffoldReadContract, useScaffoldWriteContract, useTargetNetwork } from "~~/hooks/scaffold-eth";
 
 const COUNTRIES = [
@@ -611,38 +612,6 @@ export default function PassportPage() {
   const globalScore = useMemo(() => computeGlobalScore(profiles), [profiles]);
   const clampedGlobalScore = useMemo(() => clampScore(globalScore), [globalScore]);
 
-  const dashboardStats = useMemo(() => {
-    if (profiles.length === 0) {
-      return {
-        totalHistoryMonths: 0,
-        totalAccounts: 0,
-        totalCards: 0,
-        avgUtilizationPct: null as number | null,
-        totalDelinquencies: 0,
-        profileCount: 0,
-        countries: [] as string[],
-      };
-    }
-    const totalHistoryMonths = profiles.reduce((s, p) => s + p.ageMonths, 0);
-    const totalAccounts = profiles.reduce((s, p) => s + p.totalAccounts, 0);
-    const totalCards = profiles.reduce((s, p) => s + p.cards, 0);
-    const totalDelinquencies = profiles.reduce((s, p) => s + p.delinquencies, 0);
-    const utilValues = profiles
-      .map(p => parseFloat(p.utilization.replace(/[^0-9.]/g, "")))
-      .filter(n => !Number.isNaN(n));
-    const avgUtilizationPct = utilValues.length > 0 ? utilValues.reduce((a, b) => a + b, 0) / utilValues.length : null;
-    const countries = [...new Set(profiles.map(p => p.country))];
-    return {
-      totalHistoryMonths,
-      totalAccounts,
-      totalCards,
-      avgUtilizationPct,
-      totalDelinquencies,
-      profileCount: profiles.length,
-      countries,
-    };
-  }, [profiles]);
-
   const { writeContractAsync: addProfileToContract, isPending: isAddProfilePending } = useScaffoldWriteContract({
     contractName: "CreditPassport",
   });
@@ -967,74 +936,7 @@ export default function PassportPage() {
           </div>
         ) : (
           <div className="space-y-8">
-            {/* Dashboard: aggregate stats */}
-            <section className="card bg-white/10 backdrop-blur-lg rounded-2xl shadow-lg border border-white/20 overflow-hidden">
-              <div className="card-body p-5 sm:p-6">
-                <h2 className="text-lg font-semibold text-white mb-4">Dashboard</h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-                  <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                    <p className="text-xs font-medium text-indigo-200 uppercase tracking-wider">Credit history</p>
-                    <p className="text-xl font-bold text-white mt-1">
-                      {dashboardStats.totalHistoryMonths < 12
-                        ? `${dashboardStats.totalHistoryMonths} mo`
-                        : `${(dashboardStats.totalHistoryMonths / 12).toFixed(1)} yr`}
-                    </p>
-                  </div>
-                  <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                    <p className="text-xs font-medium text-indigo-200 uppercase tracking-wider">Accounts</p>
-                    <p className="text-xl font-bold text-white mt-1">{dashboardStats.totalAccounts}</p>
-                  </div>
-                  <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                    <p className="text-xs font-medium text-indigo-200 uppercase tracking-wider">Cards</p>
-                    <p className="text-xl font-bold text-white mt-1">{dashboardStats.totalCards}</p>
-                  </div>
-                  <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                    <p className="text-xs font-medium text-indigo-200 uppercase tracking-wider">Avg utilization</p>
-                    <p className="text-xl font-bold text-white mt-1">
-                      {dashboardStats.avgUtilizationPct != null
-                        ? `${dashboardStats.avgUtilizationPct.toFixed(1)}%`
-                        : "—"}
-                    </p>
-                  </div>
-                  <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                    <p className="text-xs font-medium text-indigo-200 uppercase tracking-wider">Delinquencies</p>
-                    <p className="text-xl font-bold text-white mt-1">{dashboardStats.totalDelinquencies}</p>
-                  </div>
-                  <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                    <p className="text-xs font-medium text-indigo-200 uppercase tracking-wider">Profiles</p>
-                    <p className="text-xl font-bold text-white mt-1">{dashboardStats.profileCount}</p>
-                    {dashboardStats.countries.length > 0 && (
-                      <p className="text-sm text-indigo-200 mt-2 flex flex-wrap gap-1">
-                        {dashboardStats.countries.map(c => (
-                          <span key={c} title={c}>
-                            {COUNTRY_FLAGS[c] ?? "🌍"}
-                          </span>
-                        ))}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                {dashboardStats.profileCount > 0 && (
-                  <div className="mt-4 pt-4 border-t border-white/10">
-                    <p className="text-xs font-medium text-indigo-200 uppercase tracking-wider mb-2">
-                      Credit profiles by country
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {profiles.map((p, i) => (
-                        <span
-                          key={`${p.country}-${p.timestamp}-${i}`}
-                          className="inline-flex items-center gap-1.5 bg-white/10 rounded-lg px-3 py-1.5 text-sm text-white"
-                          title={`${p.country} · ${p.score}`}
-                        >
-                          <span>{COUNTRY_FLAGS[p.country] ?? "🌍"}</span>
-                          <span>{p.country}</span>
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </section>
+            <CreditDashboard profiles={profiles} title="Dashboard" countryFlags={COUNTRY_FLAGS} />
 
             {/* Global score + wallet */}
             {profiles.length > 0 && globalScore !== null && (

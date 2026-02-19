@@ -4,6 +4,7 @@ import { useMemo, useState, useEffect } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Address } from "@scaffold-ui/components";
 import { useAccount } from "wagmi";
+import { CreditDashboard, type CreditDashboardProfile } from "~~/components/CreditDashboard";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 import toast from "react-hot-toast";
 
@@ -252,6 +253,22 @@ const AdminApplicationCard: React.FC<CardProps> = ({ applicant, disabled, onDeci
   const selectedProfile = allProfiles[selectedProfileIndex] || null;
   const latestProfile = allProfiles.length > 0 ? allProfiles[allProfiles.length - 1] : null;
 
+  const dashboardProfiles: CreditDashboardProfile[] = useMemo(
+    () =>
+      allProfiles.map(p => ({
+        country: String(p.country ?? ""),
+        ageMonths: Number(p.ageMonths ?? 0),
+        cards: Number(p.cards ?? 0),
+        totalAccounts: Number(p.totalAccounts ?? 0),
+        utilization: String(p.utilization ?? "0%"),
+        delinquencies: Number(p.delinquencies ?? 0),
+        timestamp: p.timestamp != null ? Number(p.timestamp) : undefined,
+        score: p.score != null ? String(p.score) : undefined,
+        name: p.name != null ? String(p.name) : undefined,
+      })),
+    [allProfiles],
+  );
+
   const creditScore = useMemo(() => {
     if (!selectedProfile) return null;
     const scoreStr = selectedProfile.score?.toString();
@@ -292,6 +309,15 @@ const AdminApplicationCard: React.FC<CardProps> = ({ applicant, disabled, onDeci
               </div>
             </div>
           </div>
+
+          {/* Aggregate metrics (reusable CreditDashboard) */}
+          {dashboardProfiles.length > 0 && (
+            <CreditDashboard
+              profiles={dashboardProfiles}
+              title="Applicant aggregate metrics"
+              className="border-white/20"
+            />
+          )}
 
           {/* Credit Profiles Dropdown */}
           {allProfiles.length > 0 && (
