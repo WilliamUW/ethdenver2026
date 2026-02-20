@@ -90,6 +90,9 @@ export const NETWORKS_EXTRA_DATA: Record<string, ChainAttributes> = {
   [chains.celoSepolia.id]: {
     color: "#476520",
   },
+  99999: {
+    color: "#6366f1",
+  },
 };
 
 /**
@@ -100,15 +103,17 @@ export function getBlockExplorerTxLink(chainId: number, txnHash: string) {
 
   const targetChainArr = chainNames.filter(chainName => {
     const wagmiChain = chains[chainName as keyof typeof chains];
-    return wagmiChain.id === chainId;
+    return wagmiChain?.id === chainId;
   });
 
-  if (targetChainArr.length === 0) {
-    return "";
+  let blockExplorerTxURL: string | undefined;
+  if (targetChainArr.length > 0) {
+    const targetChain = targetChainArr[0] as keyof typeof chains;
+    blockExplorerTxURL = chains[targetChain]?.blockExplorers?.default?.url;
+  } else {
+    const customNetwork = scaffoldConfig.targetNetworks.find(n => n.id === chainId);
+    blockExplorerTxURL = customNetwork?.blockExplorers?.default?.url;
   }
-
-  const targetChain = targetChainArr[0] as keyof typeof chains;
-  const blockExplorerTxURL = chains[targetChain]?.blockExplorers?.default?.url;
 
   if (!blockExplorerTxURL) {
     return "";
