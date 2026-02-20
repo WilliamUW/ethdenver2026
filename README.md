@@ -1,91 +1,132 @@
-# 🏗 Scaffold-ETH 2
+# 🌍 **Credit Passport** 🌎
 
-<h4 align="center">
-  <a href="https://docs.scaffoldeth.io">Documentation</a> |
-  <a href="https://scaffoldeth.io">Website</a>
-</h4>
+_Your credit score shouldn't stop at the border_
 
-🧪 An open-source, up-to-date toolkit for building decentralized applications (dapps) on the Ethereum blockchain. It's designed to make it easier for developers to create and deploy smart contracts and build user interfaces that interact with those contracts.
+## 🚨 **Hi, I'm William from Toronto!** 🇨🇦
 
-> [!NOTE]
-> 🤖 Scaffold-ETH 2 is AI-ready! It has everything agents need to build on Ethereum. Check `.agents/`, `.claude/`, `.opencode` or `.cursor/` for more info.
+I graduated from **University of Waterloo**, landed a full-time SWE job in **California**, and moved with an **excellent Canadian credit score**. Paid every bill on time. Multiple cards. Perfect history.
 
-⚙️ Built using NextJS, RainbowKit, Foundry/Hardhat, Wagmi, Viem, and Typescript.
+**Then reality hit:**
 
-- ✅ **Contract Hot Reload**: Your frontend auto-adapts to your smart contract as you edit it.
-- 🪝 **[Custom hooks](https://docs.scaffoldeth.io/hooks/)**: Collection of React hooks wrapper around [wagmi](https://wagmi.sh/) to simplify interactions with smart contracts with typescript autocompletion.
-- 🧱 [**Components**](https://docs.scaffoldeth.io/components/): Collection of common web3 components to quickly build your frontend.
-- 🔥 **Burner Wallet & Local Faucet**: Quickly test your application with a burner wallet and local faucet.
-- 🔐 **Integration with Wallet Providers**: Connect to different wallet providers and interact with the Ethereum network.
+- ❌ Couldn't get a **credit card**
+- ❌ Had to **prepay 1 YEAR** for my phone plan (despite SWE salary!)
+- ❌ Rejected for **apartments**
+- ❌ Couldn't **lease a car**
 
-![Debug Contracts tab](https://github.com/scaffold-eth/scaffold-eth-2/assets/55535804/b237af0c-5027-4849-a5c1-2e31495cccb1)
+**Good job, good credit, good income = invisible.** Banks saw "no US history" and slammed the door.
 
-## Requirements
+## 🎯 **My Mission**
 
-Before you begin, you need to install the following tools:
+**Credit Passport** makes creditworthiness **portable worldwide** 🗺️
 
-- [Node (>= v20.18.3)](https://nodejs.org/en/download/)
-- Yarn ([v1](https://classic.yarnpkg.com/en/docs/install/) or [v2+](https://yarnpkg.com/getting-started/install))
-- [Git](https://git-scm.com/downloads)
-
-## Quickstart
-
-To get started with Scaffold-ETH 2, follow the steps below:
-
-1. Install the latest version of Scaffold-ETH 2
+**One wallet. One global score. No borders.**
 
 ```
-npx create-eth@latest
+🇨🇦 Canada: 720/900 ✓
+🇺🇸 USA: 785/850 ✓
+🇲🇽 Mexico: 820/950 ✓
+➡️ Global Score: **775** ⭐
 ```
 
-This command will install all the necessary packages and dependencies, so it might take a while.
+## ✨ **What It Does**
 
-> [!NOTE]
-> You can also initialize your project with one of our extensions to add specific features or starter-kits. Learn more in our [extensions documentation](https://docs.scaffoldeth.io/extensions/).
+### **1. Credit Passport** 🛂
 
-2. Run a local network in the first terminal:
+Paste your credit report → Parse → Save on-chain. **Unlimited countries per wallet.**
 
-```
-yarn chain
-```
+### **2. Credit Card Applications** 💳
 
-This command starts a local Ethereum network that runs on your local machine and can be used for testing and development. Learn how to [customize your network configuration](https://docs.scaffoldeth.io/quick-start/environment#1-initialize-a-local-blockchain).
-
-3. On a second terminal, deploy the test contract:
+Submit application → Admin sees your **global profile** → **Instant approve/reject**
 
 ```
-yarn deploy
+👤 William: APPROVED ✅
+Global Score: 775 | Countries: CA+US | Risk: Low
 ```
 
-This command deploys a test smart contract to the local network. You can find more information about how to customize your contract and deployment script in our [documentation](https://docs.scaffoldeth.io/quick-start/environment#2-deploy-your-smart-contract).
+## 🔥 **Live Demo**
 
-4. On a third terminal, start your NextJS app:
+**[Try it →](http://localhost:3000)** _(local dev)_  
+**ETHDenver:** Connect wallet → Add my Canadian profile → Apply → Watch approval! ✨
+
+## 🏗️ **How It Works**
 
 ```
-yarn start
+1. Paste credit report → Parse → Save to chain
+2. Global engine → Normalize scales → Compute score
+3. Apply for card → Admin dashboard → Decision
 ```
 
-Visit your app on: `http://localhost:3000`. You can interact with your smart contract using the `Debug Contracts` page. You can tweak the app config in `packages/nextjs/scaffold.config.ts`.
+## 🎖️ **Perfect for ETHDenver + ADI**
 
-**What's next**:
+✅ **RWA**: Credit = tokenized financial primitive  
+✅ **Institutional**: Banks get underwriting API  
+✅ **ADI**: Compliance-ready for regulated finance  
+✅ **Real economy**: Unlocks revenue from good borrowers
 
-Visit the [What's next section of our docs](https://docs.scaffoldeth.io/quick-start/environment#whats-next) to learn how to:
+## 🚀 **Run It (5 mins)**
 
-- Edit your smart contracts
-- Edit your deployment scripts
-- Customize your frontend
-- Edit the app config
-- Writing and running tests
-- [Setting up external services and API keys](https://docs.scaffoldeth.io/deploying/deploy-smart-contracts#configuration-of-third-party-services-for-production-grade-apps)
+```bash
+yarn install
+yarn chain    # Terminal 1
+yarn deploy   # Terminal 2
+yarn start    # Terminal 3
+```
 
-## Documentation
+**Open:** [http://localhost:3000](http://localhost:3000)
 
-Visit our [docs](https://docs.scaffoldeth.io) to learn all the technical details and guides of Scaffold-ETH 2.
+## 📁 **Structure**
 
-To know more about its features, check out our [website](https://scaffoldeth.io).
+```
+ethdenver2026/
+├── hardhat/           # 🤖 CreditPassport.sol + Applications.sol
+└── nextjs/            # 🎨 Passport + Card UI + Admin
+```
 
-## Contributing to Scaffold-ETH 2
+## 🛠️ **Production Stack**
 
-We welcome contributions to Scaffold-ETH 2!
+Next.js 15 - Solidity - Scaffold-ETH 2 - Wagmi - RainbowKit - Tailwind
 
-Please see [CONTRIBUTING.MD](https://github.com/scaffold-eth/scaffold-eth-2/blob/main/CONTRIBUTING.md) for more information and guidelines for contributing to Scaffold-ETH 2.
+## 🎉 **Roadmap**
+
+- 🔗 Real bureau APIs (Equifax, TransUnion)
+- 🏦 Bank/neobank integrations
+- 🌐 ADI mainnet deployment
+- 📊 ML scoring models
+- 🔐 ZK privacy
+
+## 💡 **The Business Case**
+
+```
+Today: "No local score? → Decline 😞"
+Tomorrow: "Global 775 + 3 countries? → APPROVE 💰"
+```
+
+**Millions of creditworthy migrants = untapped bank revenue.**
+
+## 🏆 **Hackathon Bingo**
+
+- ✅ **Deployed MVP**
+- ✅ **Personal story** (this is MY pain!)
+- ✅ **Institutional fit**
+- ✅ **RWA alignment**
+- ✅ **Clean UI/UX**
+- ✅ **Extensible**
+
+## 🙌 **Built With Heart**
+
+**I lived every rejection.** Prepaying a year for a phone plan with a SWE salary? Insane.
+
+**Good borrowers deserve credit. Banks deserve revenue. Geography shouldn't matter.**
+
+---
+
+⭐ **Star if you've been credit-trapped by borders!**  
+💬 **PRs welcome**  
+📧 **William: Let's fix global credit together**
+
+```
+Made with ❤️ from Toronto → California
+#CreditThatTravels #ETHDenver2026
+```
+
+**P.S.** Banks: want my bureau connections? Let's talk. 🏦✨
