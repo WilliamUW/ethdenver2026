@@ -4,8 +4,7 @@
  */
 import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 
-const deployedContracts = {
-  31337: {
+const contracts31337 = {
     CreditCardApplications: {
       address: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
       abi: [
@@ -691,6 +690,21 @@ const deployedContracts = {
       ],
       inheritedFunctions: {},
       deployedOnBlock: 1,
+    },
+  };
+
+const deployedContracts = {
+  31337: contracts31337,
+  99999: {
+    CreditCardApplications: {
+      ...contracts31337.CreditCardApplications,
+      address: "0x5ddB5D32A84ECe5cDBd519714C3Bf2c586dAafFb",
+      deployedOnBlock: 0,
+    },
+    CreditPassport: {
+      ...contracts31337.CreditPassport,
+      address: "0x71c943B5e10abD83290AB54C6DFC65Cba22B60F3",
+      deployedOnBlock: 0,
     },
   },
 } as const;

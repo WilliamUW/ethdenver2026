@@ -23,7 +23,7 @@ export const adiTestnet = defineChain({
 });
 
 export type ScaffoldConfig = {
-  targetNetworks: readonly (chains.Chain | typeof adiTestnet)[];
+  targetNetworks: readonly chains.Chain[];
   pollingInterval: number;
   alchemyApiKey: string;
   rpcOverrides?: Record<number, string>;
