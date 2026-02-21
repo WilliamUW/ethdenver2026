@@ -1,4 +1,4 @@
-# 🌍 **Credit Passport** 🌎
+# 🌍 **Global Credit Passport** 🌎
 
 _Your credit score shouldn't stop at the border_
 
